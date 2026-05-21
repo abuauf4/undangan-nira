@@ -64,9 +64,10 @@ const WEDDING = {
 /* ═══════════════════════════════════════════════════════════
    AUTO-SCROLL NOTE:
    Speed zones (getBoundingClientRect, real-time detection):
-   Normal 1x → Countdown 2x → Acara 2x → Gallery 1x → RSVP→Wishes 2x → Closing (PAUSED during animation)
-   Diary & Closing get cinematic lock (full stop via custom events).
-   Closing pauses auto-scroll so animation plays fully before scrolling continues.
+   Normal 1x → Countdown 2x → Acara 2x → Gallery 1x → RSVP→Wishes 2x → Closing 0.4x
+   Only diary gets cinematic lock (full stop via custom events).
+   Closing: NO LOCK. Speed 0.4x = slow enough for animations to play while scrolling.
+   No pause = no deadlock from ScrollTrigger.refresh() after diary pin removal.
    Auto-scroll starts 10 seconds after cover opens.
    ═══════════════════════════════════════════════════════════ */
 
@@ -1815,10 +1816,6 @@ function ClosingSection() {
         if (hasAnimated.current) return
         hasAnimated.current = true
 
-        // ═══ PAUSE auto-scroll — closing animation starting ═══
-        // Dispatch event so auto-scroll pauses while animation plays
-        window.dispatchEvent(new CustomEvent('closing-animation-start'))
-
         // Fade section in
         gsap.to(section, { opacity: 1, duration: 1, ease: 'power2.out' })
 
@@ -1867,13 +1864,8 @@ function ClosingSection() {
           gsap.to(dateRef.current, { opacity: 1, duration: 2, ease: 'power2.out', delay: afterDust })
         }
 
-        // ═══ SIGNAL: Closing animation complete ═══
-        // Dispatch event after ALL animations finish (including date fade-in)
-        // This tells auto-scroll to resume at 0.8x speed
-        const totalEndTime = afterDust + 2.5 // date fade-in duration + buffer
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('closing-animation-complete'))
-        }, totalEndTime * 1000)
+        // Closing animation plays while auto-scroll drifts at 0.4x speed.
+        // No event dispatch needed — speed-based approach, no cinematic lock.
       },
     })
   }, [])
@@ -2086,40 +2078,38 @@ export default function Home() {
     let acaraElRef: Element | null | undefined = undefined
     let galleryElRef: Element | null | undefined = undefined
     let rsvpElRef: Element | null | undefined = undefined
-    // NOTE: closingElRef removed — closing lock is triggered by event, not position detection
+    let closingElRef: Element | null | undefined = undefined
 
     const isPastCountdown = (): boolean => {
       if (countdownElRef === undefined) countdownElRef = document.querySelector('[data-section="countdown"]')
       if (!countdownElRef) return false
-      // Countdown top has reached middle of viewport
       return countdownElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
     }
     const isPastAcara = (): boolean => {
       if (acaraElRef === undefined) acaraElRef = document.querySelector('[data-section="events"]')
       if (!acaraElRef) return false
-      // Acara top has reached middle of viewport
       return acaraElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
     }
     const isPastGallery = (): boolean => {
       if (galleryElRef === undefined) galleryElRef = document.querySelector('[data-section="gallery"]')
       if (!galleryElRef) return false
-      // Gallery top has reached middle of viewport
       return galleryElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
     }
     const isPastRSVP = (): boolean => {
       if (rsvpElRef === undefined) rsvpElRef = document.querySelector('[data-section="rsvp"]')
       if (!rsvpElRef) return false
-      // RSVP top has reached middle of viewport
       return rsvpElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
     }
-    // NOTE: Closing lock is NOT triggered by position detection.
-    // The closing ScrollTrigger fires at top 30% and dispatches 'closing-animation-start'
-    // event, which sets cinematicLock = true. This ensures auto-scroll runs until the
-    // closing section is well into the viewport, THEN pauses so animation plays fully.
+    const isPastClosing = (): boolean => {
+      if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
+      if (!closingElRef) return false
+      // Closing top has reached 50% of viewport — section is clearly visible
+      // Only slow down, NEVER pause — prevents deadlock from ScrollTrigger.refresh()
+      return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
+    }
 
     // ─── State ───
-    let cinematicLock = false
-    let closingAnimDone = false  // true after closing animation fully completes
+    let cinematicLock = false  // ONLY used by diary section (pinned, time-based)
     let accumulated = 0  // Fractional pixel accumulator
 
     // ─── rAF tick ───
@@ -2153,16 +2143,15 @@ export default function Home() {
       const pastAcara = isPastAcara()
       const pastGallery = isPastGallery()
       const pastRSVP = isPastRSVP()
-      // NOTE: Closing cinematic lock is triggered by 'closing-animation-start' event
-      // dispatched from ClosingSection's ScrollTrigger (top 30%), NOT by position detection.
-      // This prevents the scroll from pausing too early (e.g. at GuestWishes)
-      // before the closing section is actually visible.
+      const pastClosing = isPastClosing()
 
       // ─── Accumulate fractional pixels ───
-      // 6-zone speed: normal → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing 0.8x (after anim)
+      // 6-zone speed: normal → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing 0.4x
+      // Closing: 0.4x = super slow drift, slow enough for handwriting + dust dissolve
+      // NO PAUSE — just slow speed. This prevents any deadlock from ScrollTrigger.refresh()
       let speed: number
-      if (closingAnimDone) {
-        speed = pxPerMs * 0.8  // Slow drift after closing animation completes
+      if (pastClosing) {
+        speed = pxPerMs * 0.4  // Very slow — see all closing animations while scrolling past
       } else if (pastRSVP) {
         speed = pxPerMsRSVP    // 2x — cruise through RSVP/envelope/wishes
       } else if (pastGallery) {
@@ -2193,12 +2182,11 @@ export default function Home() {
       animationId = requestAnimationFrame(tick)
     }, 10000)
 
-    // ═══ Cinematic lock — diary AND closing ═══
+    // ═══ Cinematic lock — diary ONLY ═══
     // diary-sequence-start: dispatched by DiaryStorySection when scroll reaches top 0%
     // diary-sequence-complete: dispatched when diary animations finish
-    // closing-animation-start: dispatched by ClosingSection when ScrollTrigger fires (top 30%)
-    // closing-animation-complete: dispatched by ClosingSection when ALL animations finish
-    // Closing PAUSES auto-scroll so animation plays fully — same pattern as diary.
+    // Closing: NO LOCK. Speed transitions to 0.4x via getBoundingClientRect detection.
+    // No pause = no deadlock from ScrollTrigger.refresh() after diary pin removal.
     const onDiaryStart = () => { cinematicLock = true }
 
     const onDiaryComplete = () => {
@@ -2210,19 +2198,11 @@ export default function Home() {
       acaraElRef = undefined
       galleryElRef = undefined
       rsvpElRef = undefined
-    }
-
-    const onClosingStart = () => { cinematicLock = true }
-
-    const onClosingComplete = () => {
-      closingAnimDone = true
-      cinematicLock = false  // Resume auto-scroll at 0.8x speed
+      closingElRef = undefined
     }
 
     window.addEventListener('diary-sequence-start', onDiaryStart)
     window.addEventListener('diary-sequence-complete', onDiaryComplete)
-    window.addEventListener('closing-animation-start', onClosingStart)
-    window.addEventListener('closing-animation-complete', onClosingComplete)
 
     return () => {
       clearTimeout(startTimeout)
@@ -2230,8 +2210,6 @@ export default function Home() {
       clearTimeout(resumeTimeout)
       window.removeEventListener('diary-sequence-start', onDiaryStart)
       window.removeEventListener('diary-sequence-complete', onDiaryComplete)
-      window.removeEventListener('closing-animation-start', onClosingStart)
-      window.removeEventListener('closing-animation-complete', onClosingComplete)
     }
   }, [isOpen])
 
