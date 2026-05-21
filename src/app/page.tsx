@@ -63,10 +63,11 @@ const WEDDING = {
 
 /* ═══════════════════════════════════════════════════════════
    AUTO-SCROLL NOTE:
-   Speed is defined in the Home component's useEffect.
+   Speed zones (getBoundingClientRect, real-time detection):
+   Normal 1x → Acara 2x → Gallery 1x → RSVP→Wishes 2x → Closing 0.8x
    Only diary gets cinematic lock (full stop via custom events).
-   Closing does NOT stop — speed transitions to 0.8x via getBoundingClientRect.
-   Section detection uses getBoundingClientRect() (real-time, no stale cache).
+   Closing does NOT stop — speed transitions to 0.8x.
+   Auto-scroll starts 10 seconds after cover opens.
    ═══════════════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════════════
@@ -2054,12 +2055,13 @@ export default function Home() {
     // ─── Speed: pixels per millisecond ───
     // 0.025 px/ms = ~1.5 px/frame at 60fps = ~25 px/s (normal)
     // Very slow cinematic drift — like watching a story unfold page by page
-    // Gallery: 2x speed = faster scroll through photo gallery
-    // RSVP onwards: 2.5x speed = cruise through RSVP/envelope/wishes to closing
+    // Acara: 2x speed = faster through event details
+    // Gallery: 1x speed = normal cinematic pace for photos
+    // RSVP→Wishes: 2x speed = cruise through RSVP/envelope/wishes
     // Closing: 0.8x speed = slow enough to see handwriting + dust dissolve animations
     const pxPerMs = 0.025
-    const pxPerMsGallery = pxPerMs * 2    // 2x speed in gallery
-    const pxPerMsRSVP = pxPerMs * 2.5     // 2.5x speed from RSVP onwards
+    const pxPerMsAcara = pxPerMs * 2      // 2x speed at acara section
+    const pxPerMsRSVP = pxPerMs * 2       // 2x speed from RSVP onwards
 
     // ─── Section-aware speed using getBoundingClientRect() ───
     // WHY NOT offsetTop caching:
@@ -2069,15 +2071,22 @@ export default function Home() {
     // getBoundingClientRect() always returns real-time viewport-relative positions,
     // so it automatically handles layout shifts from pin removal.
     // We only cache the DOM element reference (not the position).
-    let galleryElRef: Element | null | undefined = undefined  // undefined = not queried
+    let acaraElRef: Element | null | undefined = undefined  // undefined = not queried
+    let galleryElRef: Element | null | undefined = undefined
     let rsvpElRef: Element | null | undefined = undefined
     let closingElRef: Element | null | undefined = undefined
 
+    const isPastAcara = (): boolean => {
+      if (acaraElRef === undefined) acaraElRef = document.querySelector('[data-section="events"]')
+      if (!acaraElRef) return false
+      // Acara top has reached middle of viewport
+      return acaraElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
+    }
     const isPastGallery = (): boolean => {
       if (galleryElRef === undefined) galleryElRef = document.querySelector('[data-section="gallery"]')
       if (!galleryElRef) return false
-      // Gallery top has scrolled past the viewport top
-      return galleryElRef.getBoundingClientRect().top <= 0
+      // Gallery top has reached middle of viewport
+      return galleryElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
     }
     const isPastRSVP = (): boolean => {
       if (rsvpElRef === undefined) rsvpElRef = document.querySelector('[data-section="rsvp"]')
@@ -2126,6 +2135,7 @@ export default function Home() {
       }
 
       // ─── Section detection using getBoundingClientRect (real-time, no stale cache) ───
+      const pastAcara = isPastAcara()
       const pastGallery = isPastGallery()
       const pastRSVP = isPastRSVP()
       const pastClosing = isPastClosing()
@@ -2134,16 +2144,18 @@ export default function Home() {
       }
 
       // ─── Accumulate fractional pixels ───
-      // 4-zone speed: normal → gallery 2x → RSVP 2.5x → closing 0.8x
+      // 5-zone speed: normal → acara 2x → gallery 1x → RSVP 2x → closing 0.8x
       let speed: number
       if (isClosingDone) {
-        speed = pxPerMs * 0.8  // Slow drift through closing — enough time to see handwriting + dust dissolve
+        speed = pxPerMs * 0.8  // Slow drift through closing — see handwriting + dust dissolve
       } else if (pastRSVP) {
-        speed = pxPerMsRSVP    // 2.5x — cruise through RSVP/envelope/wishes to closing
+        speed = pxPerMsRSVP    // 2x — cruise through RSVP/envelope/wishes
       } else if (pastGallery) {
-        speed = pxPerMsGallery // 2x — gallery photos
+        speed = pxPerMs        // 1x — normal cinematic pace for gallery photos
+      } else if (pastAcara) {
+        speed = pxPerMsAcara   // 2x — faster through acara (event details)
       } else {
-        speed = pxPerMs       // Normal cinematic drift
+        speed = pxPerMs        // 1x — Normal cinematic drift
       }
       accumulated += delta * speed
 
@@ -2158,11 +2170,11 @@ export default function Home() {
       }
     }
 
-    // Start after 12 seconds — give time to read the Bismillah verse
+    // Start after 10 seconds — give time to read the Bismillah verse
     const startTimeout = setTimeout(() => {
       lastTime = 0
       animationId = requestAnimationFrame(tick)
-    }, 12000)
+    }, 10000)
 
     // ─── No user scroll pause, no closing lock ───
     // Auto-scroll only stops for diary cinematic lock (pinned section with time-based animations)
@@ -2180,6 +2192,7 @@ export default function Home() {
       userScrollingRef.current = false
       // Reset element refs so they get re-queried after diary pin removal
       // (pin removal shifts all section positions in the DOM)
+      acaraElRef = undefined
       galleryElRef = undefined
       rsvpElRef = undefined
       closingElRef = undefined
