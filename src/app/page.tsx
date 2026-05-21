@@ -1418,7 +1418,7 @@ function GallerySection() {
         gsap.fromTo(titleEl,
           { opacity: 0, y: 30, filter: 'blur(6px)' },
           { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.0, ease: 'power3.out',
-            scrollTrigger: { trigger: section, start: 'top 0%', toggleActions: 'play none none none' }
+            scrollTrigger: { trigger: section, start: 'top 30%', toggleActions: 'play none none none' }
           }
         )
       }
@@ -1426,7 +1426,7 @@ function GallerySection() {
         gsap.fromTo(ornamentEl,
           { opacity: 0, scale: 0.5 },
           { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(2)', delay: 0.3,
-            scrollTrigger: { trigger: section, start: 'top 0%', toggleActions: 'play none none none' }
+            scrollTrigger: { trigger: section, start: 'top 30%', toggleActions: 'play none none none' }
           }
         )
       }
@@ -1462,7 +1462,7 @@ function GallerySection() {
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: section,
-              start: 'top 0%',
+              start: 'top 30%',
               toggleActions: 'play none none none',
             },
             delay: staggerDelay,
@@ -1533,7 +1533,7 @@ function GallerySection() {
         const lightWash = gsap.timeline({
           scrollTrigger: {
             trigger: section,
-            start: 'top 0%',
+            start: 'top 30%',
             toggleActions: 'play none none none',
           },
           delay: memories.length * (isMobile ? 0.15 : 0.22) + 1.5,
