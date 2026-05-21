@@ -2118,7 +2118,7 @@ export default function Home() {
       }
 
       // ─── At bottom? Stay alive but don't scroll ───
-      const atBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 2)
+      const atBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 50)
       if (atBottom) {
         accumulated = 0
         return
@@ -2144,7 +2144,10 @@ export default function Home() {
       const wholePixels = Math.floor(accumulated)
       if (wholePixels > 0) {
         accumulated -= wholePixels
-        window.scrollBy(0, wholePixels)
+        // Use scrollTo with absolute position instead of scrollBy
+        // This avoids conflicts with GSAP ScrollTrigger's internal scroll tracking
+        const targetY = window.scrollY + wholePixels
+        window.scrollTo(0, targetY)
       }
     }
 
@@ -2273,7 +2276,7 @@ export default function Home() {
 
       {!isLoading && isOpen && (
         <SmoothScroll>
-          <main className="relative">
+          <main className="relative" style={{ touchAction: 'manipulation' }}>
             <CursorFollower />
             <JasmineParticles />
 

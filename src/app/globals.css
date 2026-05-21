@@ -136,6 +136,7 @@
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
   }
 }
 
@@ -170,6 +171,7 @@ body::after {
 
 html {
   scroll-behavior: auto;  /* CRITICAL: must be 'auto' for rAF auto-scroll — 'smooth' causes stutter */
+  overscroll-behavior: none;  /* Prevent mobile pull-to-refresh from blocking auto-scroll */
 }
 
 /* ========================================
