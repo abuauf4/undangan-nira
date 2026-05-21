@@ -286,14 +286,6 @@ export default function CoverSection({ onOpen }: CoverSectionProps) {
           opacity: phase === 'dissolving' ? 0.6 : phase === 'darkness' ? 0 : 1,
         }}
       >
-        {/* Credit */}
-        <p
-          className="text-[8px] sm:text-[9px] tracking-[0.3em] uppercase mb-10"
-          style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', opacity: 0.35 }}
-        >
-          Dibuat oleh Nauka Creative Digital
-        </p>
-
         {/* Seal */}
         <div
           className="w-16 h-16 mx-auto mb-10 rounded-full flex items-center justify-center"
