@@ -64,9 +64,9 @@ const WEDDING = {
 /* ═══════════════════════════════════════════════════════════
    AUTO-SCROLL NOTE:
    Speed is defined in the Home component's useEffect.
-   Only diary/closing get cinematic lock (full stop via custom events),
-   everything else glides at constant speed.
-   No per-section speed config — one constant speed = no stutter.
+   Only diary gets cinematic lock (full stop via custom events).
+   Closing does NOT stop — speed transitions to 0.8x via getBoundingClientRect.
+   Section detection uses getBoundingClientRect() (real-time, no stale cache).
    ═══════════════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════════════
@@ -2065,48 +2065,41 @@ export default function Home() {
     // 0.025 px/ms = ~1.5 px/frame at 60fps = ~25 px/s (normal)
     // Very slow cinematic drift — like watching a story unfold page by page
     // Gallery: 2x speed = faster scroll through photo gallery
-    // RSVP onwards: 3.5x speed = fast cruise through RSVP/envelope/wishes to closing
-    // Closing done: 0.3x speed = gentle drift to footer
-    const isMobile = window.innerWidth < 768
+    // RSVP onwards: 2.5x speed = cruise through RSVP/envelope/wishes to closing
+    // Closing: 0.8x speed = slow enough to see handwriting + dust dissolve animations
     const pxPerMs = 0.025
     const pxPerMsGallery = pxPerMs * 2    // 2x speed in gallery
-    const pxPerMsRSVP = pxPerMs * 3.5     // 3.5x speed from RSVP onwards — fast cruise to closing
+    const pxPerMsRSVP = pxPerMs * 2.5     // 2.5x speed from RSVP onwards
 
-    // ─── Section-aware speed ───
-    // Cache section offsets — invalidated after diary pin removal
-    // because ScrollTrigger.refresh() shifts all positions
-    let galleryTop: number | null = null
-    let rsvpTop: number | null = null
-    let closingTop: number | null = null
-    const getGalleryTop = (): number => {
-      if (galleryTop !== null) return galleryTop
-      const galleryEl = document.querySelector('[data-section="gallery"]')
-      if (galleryEl) {
-        galleryTop = (galleryEl as HTMLElement).offsetTop
-      }
-      return galleryTop || Infinity
+    // ─── Section-aware speed using getBoundingClientRect() ───
+    // WHY NOT offsetTop caching:
+    // Diary pin spacer adds ~125vh to the page. When pin is killed,
+    // ScrollTrigger.refresh() shifts all section positions.
+    // Cached offsetTop values become stale → wrong speed zones → scroll gets stuck.
+    // getBoundingClientRect() always returns real-time viewport-relative positions,
+    // so it automatically handles layout shifts from pin removal.
+    // We only cache the DOM element reference (not the position).
+    let galleryElRef: Element | null | undefined = undefined  // undefined = not queried
+    let rsvpElRef: Element | null | undefined = undefined
+    let closingElRef: Element | null | undefined = undefined
+
+    const isPastGallery = (): boolean => {
+      if (galleryElRef === undefined) galleryElRef = document.querySelector('[data-section="gallery"]')
+      if (!galleryElRef) return false
+      // Gallery top has scrolled past the viewport top
+      return galleryElRef.getBoundingClientRect().top <= 0
     }
-    const getRSVPTop = (): number => {
-      if (rsvpTop !== null) return rsvpTop
-      const rsvpEl = document.querySelector('[data-section="rsvp"]')
-      if (rsvpEl) {
-        rsvpTop = (rsvpEl as HTMLElement).offsetTop
-      }
-      return rsvpTop || Infinity
+    const isPastRSVP = (): boolean => {
+      if (rsvpElRef === undefined) rsvpElRef = document.querySelector('[data-section="rsvp"]')
+      if (!rsvpElRef) return false
+      // RSVP top has reached middle of viewport
+      return rsvpElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
     }
-    const getClosingTop = (): number => {
-      if (closingTop !== null) return closingTop
-      const closingEl = document.querySelector('[data-section="closing"]')
-      if (closingEl) {
-        closingTop = (closingEl as HTMLElement).offsetTop
-      }
-      return closingTop || Infinity
-    }
-    // Invalidate cached positions after diary pin removal
-    const invalidatePositions = () => {
-      galleryTop = null
-      rsvpTop = null
-      closingTop = null
+    const isPastClosing = (): boolean => {
+      if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
+      if (!closingElRef) return false
+      // Closing top has reached 80% from viewport top — same as ScrollTrigger start
+      return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.8
     }
 
     // ─── State ───
@@ -2140,21 +2133,21 @@ export default function Home() {
         return
       }
 
-      // ─── Detect closing section passed (no event, just position) ───
-      const pastClosing = window.scrollY >= getClosingTop()
+      // ─── Section detection using getBoundingClientRect (real-time, no stale cache) ───
+      const pastGallery = isPastGallery()
+      const pastRSVP = isPastRSVP()
+      const pastClosing = isPastClosing()
       if (pastClosing && !isClosingDone) {
         isClosingDone = true
       }
 
       // ─── Accumulate fractional pixels ───
-      // 4-zone speed: normal → gallery 2x → RSVP 3.5x → closing 0.5x
-      const pastGallery = window.scrollY >= getGalleryTop()
-      const pastRSVP = window.scrollY >= getRSVPTop()
+      // 4-zone speed: normal → gallery 2x → RSVP 2.5x → closing 0.8x
       let speed: number
       if (isClosingDone) {
-        speed = pxPerMs * 0.5  // Gentle drift through closing section — slow enough to see animations
+        speed = pxPerMs * 0.8  // Slow drift through closing — enough time to see handwriting + dust dissolve
       } else if (pastRSVP) {
-        speed = pxPerMsRSVP    // 3.5x — fast cruise through RSVP/envelope/wishes to closing
+        speed = pxPerMsRSVP    // 2.5x — cruise through RSVP/envelope/wishes to closing
       } else if (pastGallery) {
         speed = pxPerMsGallery // 2x — gallery photos
       } else {
@@ -2181,20 +2174,23 @@ export default function Home() {
 
     // ─── No user scroll pause, no closing lock ───
     // Auto-scroll only stops for diary cinematic lock (pinned section with time-based animations)
-    // Closing section does NOT stop auto-scroll — animations play while scrolling past
+    // Closing section does NOT stop auto-scroll — animations play while scrolling past slowly
     // This prevents the scroll from getting stuck at RSVP/envelope/wishes/closing
 
     // ═══ Cinematic lock — diary ONLY ═══
     // diary-sequence-start: dispatched by DiaryStorySection when scroll reaches top 0%
     // diary-sequence-complete: dispatched when diary animations finish
-    // Closing: NO LOCK. Speed transitions to 0.5x via position detection.
+    // Closing: NO LOCK. Speed transitions to 0.8x via getBoundingClientRect detection.
     const onDiaryStart = () => { cinematicLock = true }
 
     const onDiaryComplete = () => {
       cinematicLock = false
       userScrollingRef.current = false
-      // Invalidate cached positions because diary pin removal shifts everything
-      invalidatePositions()
+      // Reset element refs so they get re-queried after diary pin removal
+      // (pin removal shifts all section positions in the DOM)
+      galleryElRef = undefined
+      rsvpElRef = undefined
+      closingElRef = undefined
     }
 
     window.addEventListener('diary-sequence-start', onDiaryStart)
