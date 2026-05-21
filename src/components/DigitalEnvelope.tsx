@@ -21,14 +21,14 @@ const BANK_ACCOUNTS: BankAccount[] = [
     bank: 'BCA',
     number: '360058289',
     name: 'Anira Tri Agustini',
-    color: '#003D79',
+    color: '#8B5E3C',
     label: 'Mempelai Wanita',
   },
   {
     bank: 'BCA',
     number: '7621009625',
     name: 'Irwan Pratomo',
-    color: '#003D79',
+    color: '#5C4A32',
     label: 'Mempelai Pria',
   },
 ]
