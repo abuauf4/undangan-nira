@@ -1802,20 +1802,14 @@ function ClosingSection() {
       return delay + reversed.length * 0.08 + 0.7
     }
 
-    // ScrollTrigger: Signal cinematic lock when section reaches top 0%
-    // This tells auto-scroll to fully stop — the section is now fully visible
+    // ScrollTrigger — Start animation when section is well into viewport
+    // Uses top 30% instead of top 80% so animations only start when the
+    // section is prominently visible (not just barely entering from bottom).
+    // Auto-scroll speed already dropped to 0.8x at top 90%, so by the time
+    // this triggers, the section is scrolling slowly and animations are visible.
     ScrollTrigger.create({
       trigger: section,
-      start: 'top 0%',
-      onEnter: () => {
-        window.dispatchEvent(new CustomEvent('closing-sequence-start'))
-      },
-    })
-
-    // ScrollTrigger — Start animation when section enters viewport
-    ScrollTrigger.create({
-      trigger: section,
-      start: 'top 80%',
+      start: 'top 30%',
       onEnter: () => {
         if (hasAnimated.current) return
         hasAnimated.current = true
@@ -1868,12 +1862,8 @@ function ClosingSection() {
           gsap.to(dateRef.current, { opacity: 1, duration: 2, ease: 'power2.out', delay: afterDust })
         }
 
-        // Signal closing sequence complete after all animations finish
-        // Date animation takes 2s starting at afterDust
-        const closingEndTime = (afterDust + 2.0 + 1.0) * 1000  // +1s buffer
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('closing-sequence-complete'))
-        }, closingEndTime)
+        // Closing sequence complete — no event needed since auto-scroll
+        // doesn't stop for closing anymore. Speed handles transition.
       },
     })
   }, [])
@@ -2098,8 +2088,10 @@ export default function Home() {
     const isPastClosing = (): boolean => {
       if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
       if (!closingElRef) return false
-      // Closing top has reached 80% from viewport top — same as ScrollTrigger start
-      return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.8
+      // Closing top has just entered the viewport from bottom (90% from top)
+      // This triggers BEFORE the closing animation ScrollTrigger (top 30%),
+      // so speed drops to 0.8x first, then animations start when section is visible
+      return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.9
     }
 
     // ─── State ───
