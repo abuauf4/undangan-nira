@@ -5,9 +5,10 @@ import { useSearchParams } from 'next/navigation'
 
 interface CoverSectionProps {
   onOpen: () => void
+  onOpenStart?: () => void
 }
 
-export default function CoverSection({ onOpen }: CoverSectionProps) {
+export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps) {
   const searchParams = useSearchParams()
   const guestName = searchParams.get('to')
   const [isOpening, setIsOpening] = useState(false)
@@ -68,6 +69,9 @@ export default function CoverSection({ onOpen }: CoverSectionProps) {
     if (isOpening) return
     setIsOpening(true)
 
+    // Start music IMMEDIATELY — don't wait for animation to finish
+    onOpenStart?.()
+
     // Phase 1: Lean in — content draws closer, like leaning toward a door (300ms)
     setPhase('leaning')
 
@@ -85,7 +89,7 @@ export default function CoverSection({ onOpen }: CoverSectionProps) {
 
     // Phase 5: Enter the story
     setTimeout(() => onOpen(), 2200)
-  }, [isOpening, onOpen])
+  }, [isOpening, onOpen, onOpenStart])
 
   // Petal configurations — 12 petals with varied timing
   const petalConfigs = [

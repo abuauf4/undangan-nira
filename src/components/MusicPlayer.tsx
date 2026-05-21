@@ -28,13 +28,13 @@ export default function MusicPlayer({ isPlaying, onToggle, audioRef }: MusicPlay
     if (isPlaying) {
       audio.volume = 0
       const fadeIn = setInterval(() => {
-        if (audio.volume < 0.95) {
-          audio.volume = Math.min(audio.volume + 0.05, 1)
+        if (audio.volume < 0.9) {
+          audio.volume = Math.min(audio.volume + 0.1, 1)
         } else {
           audio.volume = 1
           clearInterval(fadeIn)
         }
-      }, 50)
+      }, 30)
       return () => clearInterval(fadeIn)
     }
     // No fade-out here — closing section handles its own fade

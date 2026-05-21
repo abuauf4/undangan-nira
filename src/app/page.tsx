@@ -2020,12 +2020,15 @@ export default function Home() {
 
   const handlePreloaderComplete = useCallback(() => setIsLoading(false), [])
 
-  const handleOpen = useCallback(() => {
-    setIsOpen(true)
-    // Auto play music
+  const handleOpenStart = useCallback(() => {
+    // Start music IMMEDIATELY when user taps "Buka" — don't wait for cover animation
     if (audioRef.current) {
       audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
     }
+  }, [])
+
+  const handleOpen = useCallback(() => {
+    setIsOpen(true)
   }, [])
 
   const toggleMusic = useCallback(() => {
@@ -2304,7 +2307,7 @@ export default function Home() {
 
       {!isLoading && !isOpen && (
         <Suspense fallback={null}>
-          <CoverSectionComponent onOpen={handleOpen} />
+          <CoverSectionComponent onOpen={handleOpen} onOpenStart={handleOpenStart} />
         </Suspense>
       )}
 
