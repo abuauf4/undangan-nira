@@ -1300,7 +1300,7 @@ function EventSection() {
           </div>
 
           <a
-            href="https://www.google.com/maps/search/Villa+Mutiara+Bogor+2+Bojonggede+Bogor"
+            href="https://maps.app.goo.gl/JJ1Lmg33ensJgAvEA?g_st=ac"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 w-full mt-3 px-6 py-2.5 border border-[var(--gold)]/60 text-[var(--gold-dark)] tracking-[0.15em] uppercase text-[10px] sm:text-xs hover:bg-[var(--gold)]/10 hover:border-[var(--gold)]/80 transition-all duration-500 rounded-sm"
@@ -2073,9 +2073,11 @@ export default function Home() {
     const pxPerMsRSVP = pxPerMs * 3.5     // 3.5x speed from RSVP onwards — fast cruise to closing
 
     // ─── Section-aware speed ───
-    // Cache section offsets once (they don't change after layout)
+    // Cache section offsets — invalidated after diary pin removal
+    // because ScrollTrigger.refresh() shifts all positions
     let galleryTop: number | null = null
     let rsvpTop: number | null = null
+    let closingTop: number | null = null
     const getGalleryTop = (): number => {
       if (galleryTop !== null) return galleryTop
       const galleryEl = document.querySelector('[data-section="gallery"]')
@@ -2091,6 +2093,20 @@ export default function Home() {
         rsvpTop = (rsvpEl as HTMLElement).offsetTop
       }
       return rsvpTop || Infinity
+    }
+    const getClosingTop = (): number => {
+      if (closingTop !== null) return closingTop
+      const closingEl = document.querySelector('[data-section="closing"]')
+      if (closingEl) {
+        closingTop = (closingEl as HTMLElement).offsetTop
+      }
+      return closingTop || Infinity
+    }
+    // Invalidate cached positions after diary pin removal
+    const invalidatePositions = () => {
+      galleryTop = null
+      rsvpTop = null
+      closingTop = null
     }
 
     // ─── State ───
@@ -2124,13 +2140,19 @@ export default function Home() {
         return
       }
 
+      // ─── Detect closing section passed (no event, just position) ───
+      const pastClosing = window.scrollY >= getClosingTop()
+      if (pastClosing && !isClosingDone) {
+        isClosingDone = true
+      }
+
       // ─── Accumulate fractional pixels ───
-      // 3-zone speed: normal → gallery 2x → RSVP 3.5x
+      // 4-zone speed: normal → gallery 2x → RSVP 3.5x → closing 0.5x
       const pastGallery = window.scrollY >= getGalleryTop()
       const pastRSVP = window.scrollY >= getRSVPTop()
       let speed: number
       if (isClosingDone) {
-        speed = pxPerMs * 0.3  // Gentle drift after closing
+        speed = pxPerMs * 0.5  // Gentle drift through closing section — slow enough to see animations
       } else if (pastRSVP) {
         speed = pxPerMsRSVP    // 3.5x — fast cruise through RSVP/envelope/wishes to closing
       } else if (pastGallery) {
@@ -2157,43 +2179,33 @@ export default function Home() {
       animationId = requestAnimationFrame(tick)
     }, 12000)
 
-    // ─── No user scroll pause ───
-    // Auto-scroll only stops for cinematic locks (diary & closing sequences)
-    // User wheel/touch events do NOT pause auto-scroll anymore
-    // This prevents the scroll from getting stuck at RSVP/envelope/wishes sections
-    // where touch events on form elements were incorrectly pausing the auto-scroll
+    // ─── No user scroll pause, no closing lock ───
+    // Auto-scroll only stops for diary cinematic lock (pinned section with time-based animations)
+    // Closing section does NOT stop auto-scroll — animations play while scrolling past
+    // This prevents the scroll from getting stuck at RSVP/envelope/wishes/closing
 
-    // ═══ Cinematic locks — ONLY from custom events ═══
+    // ═══ Cinematic lock — diary ONLY ═══
     // diary-sequence-start: dispatched by DiaryStorySection when scroll reaches top 0%
-    // closing-sequence-start: dispatched by ClosingSection when scroll reaches top 0%
+    // diary-sequence-complete: dispatched when diary animations finish
+    // Closing: NO LOCK. Speed transitions to 0.5x via position detection.
     const onDiaryStart = () => { cinematicLock = true }
-    const onClosingStart = () => { cinematicLock = true }
 
     const onDiaryComplete = () => {
       cinematicLock = false
       userScrollingRef.current = false
-      // Resume at same constant speed — no velocity ramp needed
-    }
-
-    const onClosingComplete = () => {
-      cinematicLock = false
-      isClosingDone = true
-      // Resume at slow drift speed
+      // Invalidate cached positions because diary pin removal shifts everything
+      invalidatePositions()
     }
 
     window.addEventListener('diary-sequence-start', onDiaryStart)
-    window.addEventListener('closing-sequence-start', onClosingStart)
     window.addEventListener('diary-sequence-complete', onDiaryComplete)
-    window.addEventListener('closing-sequence-complete', onClosingComplete)
 
     return () => {
       clearTimeout(startTimeout)
       cancelAnimationFrame(animationId)
       clearTimeout(resumeTimeout)
       window.removeEventListener('diary-sequence-start', onDiaryStart)
-      window.removeEventListener('closing-sequence-start', onClosingStart)
       window.removeEventListener('diary-sequence-complete', onDiaryComplete)
-      window.removeEventListener('closing-sequence-complete', onClosingComplete)
     }
   }, [isOpen])
 
