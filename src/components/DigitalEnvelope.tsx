@@ -13,20 +13,23 @@ interface BankAccount {
   number: string
   name: string
   color: string
+  label: string
 }
 
 const BANK_ACCOUNTS: BankAccount[] = [
   {
     bank: 'BCA',
-    number: '1234567890',
-    name: 'Irwan Pratomo',
+    number: '360058289',
+    name: 'Anira Tri Agustini',
     color: '#003D79',
+    label: 'Mempelai Wanita',
   },
   {
-    bank: 'Mandiri',
-    number: '0987654321',
-    name: 'Anira Tri Agustini',
-    color: '#003366',
+    bank: 'BCA',
+    number: '7621009625',
+    name: 'Irwan Pratomo',
+    color: '#003D79',
+    label: 'Mempelai Pria',
   },
 ]
 
@@ -130,7 +133,7 @@ export default function DigitalEnvelope() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto mb-10">
           {BANK_ACCOUNTS.map((account) => (
             <div
-              key={account.bank}
+              key={account.number}
               className="rounded-xl overflow-hidden shadow-md border border-[var(--gold)]/20"
               style={{ background: 'rgba(255,255,255,0.85)' }}
             >
@@ -139,9 +142,14 @@ export default function DigitalEnvelope() {
                 className="px-5 py-3 flex items-center justify-between"
                 style={{ background: account.color }}
               >
-                <span className="text-white text-sm font-bold" style={{ fontFamily: 'var(--font-body)' }}>
-                  {account.bank}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-white text-sm font-bold" style={{ fontFamily: 'var(--font-body)' }}>
+                    {account.bank}
+                  </span>
+                  <span className="text-white/60 text-[9px] tracking-wider uppercase" style={{ fontFamily: 'var(--font-body)' }}>
+                    {account.label}
+                  </span>
+                </div>
                 <div className="w-8 h-8 rounded-full border-2 border-white/30 flex items-center justify-center">
                   <span className="text-white/80 text-xs" style={{ fontFamily: 'var(--font-body)' }}>
                     {account.bank[0]}
