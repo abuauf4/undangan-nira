@@ -16,38 +16,6 @@ interface Wish {
   createdAt: string
 }
 
-// Seed wishes for initial display
-const SEED_WISHES: Wish[] = [
-  {
-    id: 'seed-1',
-    name: 'Bp. Hadi Santoso',
-    message: 'Semoga menjadi keluarga sakinah mawaddah warahmah. Mugo langgeng nganti puncake.',
-    avatar: 'HS',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'seed-2',
-    name: 'Ibu Sri Rahayu',
-    message: 'Kangge Mas Irwan mbak Anira, muga-muga pinaraking pangestu lan kabagyan.',
-    avatar: 'SR',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'seed-3',
-    name: 'Rina & Dedi',
-    message: 'Happy wedding! Semoga menjadi pasangan yang saling melengkapi.',
-    avatar: 'RD',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'seed-4',
-    name: 'Mbah Darmo',
-    message: 'Muga sida kalampahanipun, dados pasangan ingkang berkah.',
-    avatar: 'MD',
-    createdAt: new Date().toISOString(),
-  },
-]
-
 function WishCard({ wish, index }: { wish: Wish; index: number }) {
   return (
     <div
@@ -89,13 +57,12 @@ function WishCard({ wish, index }: { wish: Wish; index: number }) {
 }
 
 export default function GuestWishes() {
-  const [wishes, setWishes] = useState<Wish[]>(SEED_WISHES)
+  const [wishes, setWishes] = useState<Wish[]>([])
   const [name, setName] = useState('')
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
-  const wishesListRef = useRef<HTMLDivElement>(null)
   const sectionRef = useRef<HTMLDivElement>(null)
 
   // Scroll-triggered entrance animation
@@ -131,7 +98,7 @@ export default function GuestWishes() {
         }
       }
     } catch {
-      // Keep seed wishes on error
+      // silent
     }
   }, [])
 
@@ -166,11 +133,6 @@ export default function GuestWishes() {
       setName('')
       setMessage('')
       setSubmitStatus('success')
-
-      // Scroll to top of wishes list to show new entry
-      setTimeout(() => {
-        wishesListRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-      }, 300)
 
       // Clear success message after 3s
       setTimeout(() => setSubmitStatus('idle'), 3000)
@@ -281,19 +243,15 @@ export default function GuestWishes() {
           </button>
         </form>
 
-        {/* ─── Wishes List ─── */}
-        <div
-          ref={wishesListRef}
-          className="max-h-[500px] overflow-y-auto pr-2 space-y-3"
-          style={{ scrollbarWidth: 'thin', scrollbarColor: 'var(--gold) transparent' }}
-        >
-          {wishes.map((wish, index) => (
-            <WishCard key={wish.id} wish={wish} index={index} />
-          ))}
-        </div>
-
-        {wishes.length === 0 && (
-          <p className="text-sm italic mt-6" style={{ fontFamily: 'var(--font-serif)', color: 'var(--brown-light)' }}>
+        {/* ─── Wishes List — no nested scroll container ─── */}
+        {wishes.length > 0 ? (
+          <div className="max-w-lg mx-auto space-y-3">
+            {wishes.map((wish, index) => (
+              <WishCard key={wish.id} wish={wish} index={index} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm italic" style={{ fontFamily: 'var(--font-serif)', color: 'var(--brown-light)' }}>
             Belum ada ucapan. Jadilah yang pertama!
           </p>
         )}
