@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import JasmineParticles from '@/components/JasmineParticles'
@@ -1290,6 +1290,65 @@ function EventSection() {
             {WEDDING.address}
           </p>
         </div>
+
+        {/* Google Maps Embed */}
+        <div className="mt-8 max-w-lg mx-auto">
+          <div className="rounded-lg overflow-hidden border border-[var(--gold)]/20 shadow-md">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.5!2d106.78!3d-6.48!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwMjgnNDguMCJTIDEwNsKwNDYnNDguMCJF!5e0!3m2!1sen!2sid!4v1"
+              width="100%"
+              height="200"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Lokasi Acara"
+            />
+          </div>
+
+          {/* Map & Calendar Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-4 justify-center">
+            <a
+              href="https://www.google.com/maps/search/Villa+Mutiara+Bogor+2+Bojonggede+Bogor"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 border border-[var(--gold)]/60 text-[var(--gold-dark)] tracking-[0.15em] uppercase text-[10px] sm:text-xs hover:bg-[var(--gold)]/10 hover:border-[var(--gold)]/80 transition-all duration-500 rounded-sm"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              Buka Google Maps
+            </a>
+            <a
+              href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Akad+Nikah+Irwan+%26+Anira&dates=20260705T100000/20260705T170000&details=Akad+Nikah+%26+Resepsi+Irwan+Pratomo+%26+Anira+Tri+Agustini&location=Villa+Mutiara+Bogor+2+Blok+C2+No.36+Bojonggede+Bogor"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 border border-[var(--gold)]/60 text-[var(--gold-dark)] tracking-[0.15em] uppercase text-[10px] sm:text-xs hover:bg-[var(--gold)]/10 hover:border-[var(--gold)]/80 transition-all duration-500 rounded-sm"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+              Tambah ke Kalender
+            </a>
+          </div>
+        </div>
+
+        {/* Dress Code & Info */}
+        <div className="mt-10 max-w-md mx-auto">
+          <div className="ornament-divider max-w-[80px] mx-auto mb-6">
+            <span className="text-[var(--gold)] text-xs">&#10047;</span>
+          </div>
+          <p
+            className="text-sm italic mb-2"
+            style={{ fontFamily: 'var(--font-serif)', color: 'var(--brown)', opacity: 0.7 }}
+          >
+            Dress Code: Busana Formal / Batik
+          </p>
+          <p
+            className="text-xs italic"
+            style={{ fontFamily: 'var(--font-serif)', color: 'var(--brown-light)', opacity: 0.5 }}
+          >
+            Mohon untuk tidak membawa anak-anak di bawah 5 tahun
+          </p>
+        </div>
       </div>
     </section>
   )
@@ -2260,7 +2319,9 @@ export default function Home() {
       )}
 
       {!isLoading && !isOpen && (
-        <CoverSectionComponent onOpen={handleOpen} />
+        <Suspense fallback={null}>
+          <CoverSectionComponent onOpen={handleOpen} />
+        </Suspense>
       )}
 
       {!isLoading && isOpen && (

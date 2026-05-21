@@ -1,12 +1,15 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 interface CoverSectionProps {
   onOpen: () => void
 }
 
 export default function CoverSection({ onOpen }: CoverSectionProps) {
+  const searchParams = useSearchParams()
+  const guestName = searchParams.get('to')
   const [isOpening, setIsOpening] = useState(false)
   const [phase, setPhase] = useState<'idle' | 'leaning' | 'blooming' | 'breathing' | 'dissolving' | 'darkness'>('idle')
   const containerRef = useRef<HTMLDivElement>(null)
@@ -320,9 +323,25 @@ export default function CoverSection({ onOpen }: CoverSectionProps) {
           <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, var(--gold), transparent)' }} />
         </div>
 
-        <p className="text-sm tracking-[0.2em] mb-10" style={{ fontFamily: 'var(--font-serif)', color: 'var(--cream)', opacity: 0.7 }}>
+        <p className="text-sm tracking-[0.2em] mb-6" style={{ fontFamily: 'var(--font-serif)', color: 'var(--cream)', opacity: 0.7 }}>
           05 . 07 . 2026
         </p>
+
+        {/* Guest name from URL param */}
+        <div className="mb-10">
+          <p
+            className="text-[10px] sm:text-xs tracking-[0.25em] uppercase mb-1"
+            style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', opacity: 0.6 }}
+          >
+            Kepada Yth.
+          </p>
+          <p
+            className="text-base sm:text-lg italic"
+            style={{ fontFamily: 'var(--font-serif)', color: 'var(--cream)', opacity: 0.85 }}
+          >
+            {guestName || 'Tamu Undangan'}
+          </p>
+        </div>
 
         {/* The button that opens the door */}
         <button
