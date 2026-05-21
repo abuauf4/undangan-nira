@@ -1327,25 +1327,6 @@ function EventSection() {
             </a>
           </div>
         </div>
-
-        {/* Dress Code & Info */}
-        <div className="mt-10 max-w-md mx-auto">
-          <div className="ornament-divider max-w-[80px] mx-auto mb-6">
-            <span className="text-[var(--gold)] text-xs">&#10047;</span>
-          </div>
-          <p
-            className="text-sm italic mb-2"
-            style={{ fontFamily: 'var(--font-serif)', color: 'var(--brown)', opacity: 0.7 }}
-          >
-            Dress Code: Busana Formal / Batik
-          </p>
-          <p
-            className="text-xs italic"
-            style={{ fontFamily: 'var(--font-serif)', color: 'var(--brown-light)', opacity: 0.5 }}
-          >
-            Mohon untuk tidak membawa anak-anak di bawah 5 tahun
-          </p>
-        </div>
       </div>
     </section>
   )
