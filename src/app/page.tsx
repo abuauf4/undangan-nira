@@ -2152,11 +2152,11 @@ export default function Home() {
       }
     }
 
-    // Start after 10 seconds — give time to read the Bismillah verse
+    // Start after 12 seconds — give time to read the Bismillah verse
     const startTimeout = setTimeout(() => {
       lastTime = 0
       animationId = requestAnimationFrame(tick)
-    }, 10000)
+    }, 12000)
 
     // ─── User scroll detection — pause then auto-resume ───
     // Only pause for genuine scroll gestures (wheel on empty area)
