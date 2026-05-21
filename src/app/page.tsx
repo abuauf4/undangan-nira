@@ -1815,6 +1815,10 @@ function ClosingSection() {
         if (hasAnimated.current) return
         hasAnimated.current = true
 
+        // ═══ PAUSE auto-scroll — closing animation starting ═══
+        // Dispatch event so auto-scroll pauses while animation plays
+        window.dispatchEvent(new CustomEvent('closing-animation-start'))
+
         // Fade section in
         gsap.to(section, { opacity: 1, duration: 1, ease: 'power2.out' })
 
@@ -2082,7 +2086,7 @@ export default function Home() {
     let acaraElRef: Element | null | undefined = undefined
     let galleryElRef: Element | null | undefined = undefined
     let rsvpElRef: Element | null | undefined = undefined
-    let closingElRef: Element | null | undefined = undefined
+    // NOTE: closingElRef removed — closing lock is triggered by event, not position detection
 
     const isPastCountdown = (): boolean => {
       if (countdownElRef === undefined) countdownElRef = document.querySelector('[data-section="countdown"]')
@@ -2108,14 +2112,10 @@ export default function Home() {
       // RSVP top has reached middle of viewport
       return rsvpElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
     }
-    const isPastClosing = (): boolean => {
-      if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
-      if (!closingElRef) return false
-      // Closing top has just entered the viewport from bottom (90% from top)
-      // This triggers the cinematic lock BEFORE the closing animation ScrollTrigger (top 30%),
-      // so auto-scroll pauses, then animations start when section is fully visible
-      return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.9
-    }
+    // NOTE: Closing lock is NOT triggered by position detection.
+    // The closing ScrollTrigger fires at top 30% and dispatches 'closing-animation-start'
+    // event, which sets cinematicLock = true. This ensures auto-scroll runs until the
+    // closing section is well into the viewport, THEN pauses so animation plays fully.
 
     // ─── State ───
     let cinematicLock = false
@@ -2153,12 +2153,10 @@ export default function Home() {
       const pastAcara = isPastAcara()
       const pastGallery = isPastGallery()
       const pastRSVP = isPastRSVP()
-      const pastClosing = isPastClosing()
-      // When closing section enters viewport, trigger cinematic lock
-      // This PAUSES auto-scroll so closing animation can play fully
-      if (pastClosing && !closingAnimDone) {
-        cinematicLock = true  // Pause auto-scroll at closing section
-      }
+      // NOTE: Closing cinematic lock is triggered by 'closing-animation-start' event
+      // dispatched from ClosingSection's ScrollTrigger (top 30%), NOT by position detection.
+      // This prevents the scroll from pausing too early (e.g. at GuestWishes)
+      // before the closing section is actually visible.
 
       // ─── Accumulate fractional pixels ───
       // 6-zone speed: normal → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing 0.8x (after anim)
@@ -2198,6 +2196,7 @@ export default function Home() {
     // ═══ Cinematic lock — diary AND closing ═══
     // diary-sequence-start: dispatched by DiaryStorySection when scroll reaches top 0%
     // diary-sequence-complete: dispatched when diary animations finish
+    // closing-animation-start: dispatched by ClosingSection when ScrollTrigger fires (top 30%)
     // closing-animation-complete: dispatched by ClosingSection when ALL animations finish
     // Closing PAUSES auto-scroll so animation plays fully — same pattern as diary.
     const onDiaryStart = () => { cinematicLock = true }
@@ -2211,8 +2210,9 @@ export default function Home() {
       acaraElRef = undefined
       galleryElRef = undefined
       rsvpElRef = undefined
-      closingElRef = undefined
     }
+
+    const onClosingStart = () => { cinematicLock = true }
 
     const onClosingComplete = () => {
       closingAnimDone = true
@@ -2221,6 +2221,7 @@ export default function Home() {
 
     window.addEventListener('diary-sequence-start', onDiaryStart)
     window.addEventListener('diary-sequence-complete', onDiaryComplete)
+    window.addEventListener('closing-animation-start', onClosingStart)
     window.addEventListener('closing-animation-complete', onClosingComplete)
 
     return () => {
@@ -2229,6 +2230,7 @@ export default function Home() {
       clearTimeout(resumeTimeout)
       window.removeEventListener('diary-sequence-start', onDiaryStart)
       window.removeEventListener('diary-sequence-complete', onDiaryComplete)
+      window.removeEventListener('closing-animation-start', onClosingStart)
       window.removeEventListener('closing-animation-complete', onClosingComplete)
     }
   }, [isOpen])
