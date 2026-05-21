@@ -54,13 +54,10 @@ const WEDDING = {
   ],
   galleryImages: [
     '/images/gallery-1.jpg', '/images/gallery-2.jpg', '/images/gallery-3.jpg',
-    '/images/gallery-4.jpg', '/images/gallery-5.jpg', '/images/gallery-6.jpg',
-    '/images/gallery-7.jpg', '/images/gallery-8.jpg', '/images/gallery-9.jpg',
-    '/images/gallery-10.jpg', '/images/gallery-11.jpg',
+    '/images/gallery-4.jpg', '/images/gallery-5.jpg',
   ],
   galleryCaptions: [
     'Pertama kali', 'Bersama', 'Kenangan', 'Tawa', 'Bahagia',
-    'Cinta', 'Semesta', 'Harapan', 'Janji', 'Selamanya', 'Kita',
   ],
 }
 
@@ -2100,15 +2097,18 @@ export default function Home() {
     // ─── Speed: pixels per millisecond ───
     // 0.025 px/ms = ~1.5 px/frame at 60fps = ~25 px/s (normal)
     // Very slow cinematic drift — like watching a story unfold page by page
-    // Gallery onwards: 2x speed = faster scroll through photo gallery + RSVP
+    // Gallery: 2x speed = faster scroll through photo gallery
+    // RSVP onwards: 3.5x speed = fast cruise through RSVP/envelope/wishes to closing
     // Closing done: 0.3x speed = gentle drift to footer
     const isMobile = window.innerWidth < 768
     const pxPerMs = 0.025
-    const pxPerMsFast = pxPerMs * 2  // 2x speed from gallery onwards
+    const pxPerMsGallery = pxPerMs * 2    // 2x speed in gallery
+    const pxPerMsRSVP = pxPerMs * 3.5     // 3.5x speed from RSVP onwards — fast cruise to closing
 
     // ─── Section-aware speed ───
-    // Cache gallery section offset once (it doesn't change after layout)
+    // Cache section offsets once (they don't change after layout)
     let galleryTop: number | null = null
+    let rsvpTop: number | null = null
     const getGalleryTop = (): number => {
       if (galleryTop !== null) return galleryTop
       const galleryEl = document.querySelector('[data-section="gallery"]')
@@ -2116,6 +2116,14 @@ export default function Home() {
         galleryTop = (galleryEl as HTMLElement).offsetTop
       }
       return galleryTop || Infinity
+    }
+    const getRSVPTop = (): number => {
+      if (rsvpTop !== null) return rsvpTop
+      const rsvpEl = document.querySelector('[data-section="rsvp"]')
+      if (rsvpEl) {
+        rsvpTop = (rsvpEl as HTMLElement).offsetTop
+      }
+      return rsvpTop || Infinity
     }
 
     // ─── State ───
@@ -2150,15 +2158,18 @@ export default function Home() {
       }
 
       // ─── Accumulate fractional pixels ───
-      // From gallery onwards → 2x speed (photos + RSVP scroll faster)
+      // 3-zone speed: normal → gallery 2x → RSVP 3.5x
       const pastGallery = window.scrollY >= getGalleryTop()
+      const pastRSVP = window.scrollY >= getRSVPTop()
       let speed: number
       if (isClosingDone) {
         speed = pxPerMs * 0.3  // Gentle drift after closing
+      } else if (pastRSVP) {
+        speed = pxPerMsRSVP    // 3.5x — fast cruise through RSVP/envelope/wishes to closing
       } else if (pastGallery) {
-        speed = pxPerMsFast  // 2x from gallery onwards
+        speed = pxPerMsGallery // 2x — gallery photos
       } else {
-        speed = pxPerMs  // Normal cinematic drift
+        speed = pxPerMs       // Normal cinematic drift
       }
       accumulated += delta * speed
 
