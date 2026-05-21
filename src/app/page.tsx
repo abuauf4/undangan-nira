@@ -2183,6 +2183,11 @@ export default function Home() {
       if (target.closest('form, button, input, textarea, select, label, a')) {
         return true
       }
+      // Don't pause for touches inside interactive sections (RSVP, envelope, wishes)
+      // These sections have scrollable lists and cards — touching them shouldn't stop auto-scroll
+      if (target.closest('[data-section="rsvp"], [data-section="envelope"], [data-section="wishes"]')) {
+        return true
+      }
       return false
     }
 
