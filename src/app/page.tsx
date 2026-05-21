@@ -2116,7 +2116,7 @@ export default function Home() {
       lastTime = time
 
       // ─── Paused states — don't accumulate ───
-      if (cinematicLock || userScrollingRef.current) {
+      if (cinematicLock) {
         accumulated = 0  // Reset accumulator so resume doesn't cause a jump
         return
       }
@@ -2158,45 +2158,11 @@ export default function Home() {
       animationId = requestAnimationFrame(tick)
     }, 12000)
 
-    // ─── User scroll detection — pause then auto-resume ───
-    // Only pause for genuine scroll gestures (wheel on empty area)
-    // DON'T pause for form interactions — touching inputs/buttons shouldn't stop auto-scroll
-    const isFormInteraction = (e: Event): boolean => {
-      const target = e.target as HTMLElement
-      if (!target) return false
-      const tag = target.tagName
-      // Don't pause for: input, textarea, select, button, label, a (links)
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON' || tag === 'LABEL' || tag === 'A') {
-        return true
-      }
-      // Also check if target is inside a form
-      if (target.closest('form, button, input, textarea, select, label, a')) {
-        return true
-      }
-      // Don't pause for touches inside interactive sections (RSVP, envelope, wishes)
-      // These sections have scrollable lists and cards — touching them shouldn't stop auto-scroll
-      if (target.closest('[data-section="rsvp"], [data-section="envelope"], [data-section="wishes"]')) {
-        return true
-      }
-      return false
-    }
-
-    const pauseAndResume = (e?: Event) => {
-      if (cinematicLock) return
-      if (e && isFormInteraction(e)) return  // Don't pause for form interactions
-      userScrollingRef.current = true
-      clearTimeout(resumeTimeout)
-      resumeTimeout = setTimeout(() => {
-        if (cinematicLock) return
-        userScrollingRef.current = false
-      }, 2500)
-    }
-
-    const onWheel = (e: Event) => pauseAndResume(e)
-    const onTouchStart = (e: Event) => pauseAndResume(e)
-
-    window.addEventListener('wheel', onWheel, { passive: true })
-    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    // ─── No user scroll pause ───
+    // Auto-scroll only stops for cinematic locks (diary & closing sequences)
+    // User wheel/touch events do NOT pause auto-scroll anymore
+    // This prevents the scroll from getting stuck at RSVP/envelope/wishes sections
+    // where touch events on form elements were incorrectly pausing the auto-scroll
 
     // ═══ Cinematic locks — ONLY from custom events ═══
     // diary-sequence-start: dispatched by DiaryStorySection when scroll reaches top 0%
@@ -2225,8 +2191,6 @@ export default function Home() {
       clearTimeout(startTimeout)
       cancelAnimationFrame(animationId)
       clearTimeout(resumeTimeout)
-      window.removeEventListener('wheel', onWheel)
-      window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('diary-sequence-start', onDiaryStart)
       window.removeEventListener('closing-sequence-start', onClosingStart)
       window.removeEventListener('diary-sequence-complete', onDiaryComplete)
