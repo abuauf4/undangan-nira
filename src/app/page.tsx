@@ -354,44 +354,44 @@ function CoupleSection() {
         }
       )
 
-      // Groom photo — cinematic reveal with blur
+      // Groom photo — smooth cinematic reveal, no scale to prevent glitch
       if (groomRef.current) {
-        gsap.fromTo(groomRef.current,
-          { opacity: 0, y: 30, scale: 0.85, filter: 'blur(8px)' },
-          {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            filter: 'blur(0px)',
-            duration: 1.8,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: sectionRef.current!,
-              start: 'top 85%',
-              toggleActions: 'play none none none',
-            },
-          }
+        const groomTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current!,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+          },
+        })
+        // Step 1: Fade in with blur only (no scale = no layout shift glitch)
+        groomTl.fromTo(groomRef.current,
+          { opacity: 0, filter: 'blur(12px)' },
+          { opacity: 0.6, filter: 'blur(6px)', duration: 0.8, ease: 'power2.out' }
+        )
+        // Step 2: Fully clear
+        groomTl.to(groomRef.current,
+          { opacity: 1, filter: 'blur(0px)', duration: 1.0, ease: 'power2.out' }
         )
       }
 
-      // Bride photo — cinematic reveal with blur, slight delay
+      // Bride photo — smooth cinematic reveal, no scale to prevent glitch
       if (brideRef.current) {
-        gsap.fromTo(brideRef.current,
-          { opacity: 0, y: 30, scale: 0.85, filter: 'blur(8px)' },
-          {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            filter: 'blur(0px)',
-            duration: 1.8,
-            delay: 0.3,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: sectionRef.current!,
-              start: 'top 85%',
-              toggleActions: 'play none none none',
-            },
-          }
+        const brideTl = gsap.timeline({
+          delay: 0.3,
+          scrollTrigger: {
+            trigger: sectionRef.current!,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+          },
+        })
+        // Step 1: Fade in with blur only
+        brideTl.fromTo(brideRef.current,
+          { opacity: 0, filter: 'blur(12px)' },
+          { opacity: 0.6, filter: 'blur(6px)', duration: 0.8, ease: 'power2.out' }
+        )
+        // Step 2: Fully clear
+        brideTl.to(brideRef.current,
+          { opacity: 1, filter: 'blur(0px)', duration: 1.0, ease: 'power2.out' }
         )
       }
 
@@ -2156,7 +2156,7 @@ export default function Home() {
       // fully scrolled past viewport top before handwriting starts
       let speed: number
       if (pastClosing) {
-        speed = pxPerMs  // Normal speed — handwriting triggers at top -100%
+        speed = pxPerMs * 0.5  // Slower 0.5x — give breathing room for handwriting animation
       } else if (pastRSVP) {
         speed = pxPerMsRSVP    // 2x — cruise through RSVP/envelope/wishes
       } else if (pastGallery) {
