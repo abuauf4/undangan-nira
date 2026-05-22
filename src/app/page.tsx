@@ -2050,6 +2050,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true)
+  const autoScrollRef = useRef(true)
   const audioRef = useRef<HTMLAudioElement>(null)
   const userScrollingRef = useRef(false)
 
@@ -2075,6 +2077,13 @@ export default function Home() {
       audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
     }
   }, [isPlaying])
+
+  const toggleAutoScroll = useCallback(() => {
+    setAutoScrollEnabled((prev) => {
+      autoScrollRef.current = !prev
+      return !prev
+    })
+  }, [])
 
   // ═══════════════════════════════════════════════════════════
   // AUTO-SCROLL — Time accumulator approach
@@ -2181,7 +2190,7 @@ export default function Home() {
       lastTime = time
 
       // ─── Paused states — don't accumulate ───
-      if (cinematicLock) {
+      if (cinematicLock || !autoScrollRef.current) {
         accumulated = 0  // Reset accumulator so resume doesn't cause a jump
         return
       }
@@ -2392,6 +2401,61 @@ export default function Home() {
             onToggle={toggleMusic}
             audioRef={audioRef}
           />
+        )}
+
+        {/* Control buttons — bottom left, small and minimal */}
+        {isOpen && (
+          <div className="fixed bottom-4 left-4 z-[9999] flex flex-col gap-2">
+            {/* Auto-scroll toggle */}
+            <button
+              onClick={toggleAutoScroll}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[var(--gold)]/60 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110"
+              style={{
+                background: autoScrollEnabled ? 'rgba(250, 245, 230, 0.9)' : 'rgba(201, 169, 110, 0.9)',
+                color: autoScrollEnabled ? 'var(--gold-dark)' : '#fff',
+                backdropFilter: 'blur(8px)',
+                boxShadow: autoScrollEnabled ? '0 0 10px rgba(201, 169, 110, 0.2)' : '0 0 10px rgba(201, 169, 110, 0.4)',
+              }}
+              title={autoScrollEnabled ? 'Matikan Auto-scroll' : 'Nyalakan Auto-scroll'}
+            >
+              {autoScrollEnabled ? (
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M16 13c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-2.21 1.79-4 4-4s4 1.79 4 4v8zm-7 0c0 1.66 1.34 3 3 3s3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v8z"/>
+                  <path d="M12 15c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2s2 .9 2 2v8c0 1.1-.9 2-2 2z" opacity="0"/>
+                  <path d="M19 11h-2c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92z"/>
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" opacity="0"/>
+                  <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                </svg>
+              )}
+            </button>
+
+            {/* Music pause/play */}
+            <button
+              onClick={toggleMusic}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[var(--gold)]/60 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110"
+              style={{
+                background: isPlaying ? 'rgba(250, 245, 230, 0.9)' : 'rgba(201, 169, 110, 0.9)',
+                color: isPlaying ? 'var(--gold-dark)' : '#fff',
+                backdropFilter: 'blur(8px)',
+                boxShadow: isPlaying ? '0 0 10px rgba(201, 169, 110, 0.2)' : '0 0 10px rgba(201, 169, 110, 0.4)',
+              }}
+              title={isPlaying ? 'Pause Musik' : 'Putar Musik'}
+            >
+              {isPlaying ? (
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              )}
+            </button>
+          </div>
         )}
       </>
       )}
