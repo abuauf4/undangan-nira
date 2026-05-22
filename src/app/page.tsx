@@ -1810,9 +1810,9 @@ function ClosingSection() {
       return delay + reversed.length * 0.08 + 0.7
     }
 
-    // ScrollTrigger — Start animation when closing section is in view
-    // Use IntersectionObserver for reliable detection, then dispatch
-    // closing-sequence-start to pause auto-scroll during the animation
+    // IntersectionObserver: trigger animation at 30% visible (handwriting starts early)
+    // ScrollTrigger (separate): pause auto-scroll when section top reaches viewport top (0%)
+    // This way animation plays while auto-scroll still moves, scroll pauses at top 0%
     const closingObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -1820,8 +1820,8 @@ function ClosingSection() {
             hasAnimated.current = true
             closingObserver.disconnect()
 
-            // Pause auto-scroll so user can watch the animation
-            window.dispatchEvent(new CustomEvent('closing-sequence-start'))
+            // DO NOT dispatch closing-sequence-start here!
+            // Auto-scroll pause is handled by ScrollTrigger at top 0%
 
             // Fade section in
             gsap.to(section, { opacity: 1, duration: 1, ease: 'power2.out' })
@@ -1878,9 +1878,19 @@ function ClosingSection() {
           }
         })
       },
-      { threshold: 1.0 }
+      { threshold: 0.3 }
     )
     closingObserver.observe(section)
+
+    // ScrollTrigger: pause auto-scroll when closing section top reaches viewport top (0%)
+    // Animation already started at 30% visible, scroll keeps going until here
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top 0%',
+      onEnter: () => {
+        window.dispatchEvent(new CustomEvent('closing-sequence-start'))
+      },
+    })
 
     return () => closingObserver.disconnect()
   }, [])
