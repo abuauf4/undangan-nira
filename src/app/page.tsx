@@ -1580,7 +1580,7 @@ function GallerySection() {
             fontStyle: 'italic',
             fontSize: 'clamp(1.2rem, 3vw, 2.2rem)',
             color: 'var(--gold)',
-            opacity: 0.07,
+            opacity: 0.18,
             maxWidth: '90%',
           }}
         >
@@ -2103,12 +2103,20 @@ export default function Home() {
     // getBoundingClientRect() always returns real-time viewport-relative positions,
     // so it automatically handles layout shifts from pin removal.
     // We only cache the DOM element reference (not the position).
-    let countdownElRef: Element | null | undefined = undefined  // undefined = not queried
+    let diaryIntroElRef: Element | null | undefined = undefined  // undefined = not queried
+    let countdownElRef: Element | null | undefined = undefined
     let acaraElRef: Element | null | undefined = undefined
     let galleryElRef: Element | null | undefined = undefined
     let rsvpElRef: Element | null | undefined = undefined
     let closingElRef: Element | null | undefined = undefined
 
+    const isAtDiaryIntro = (): boolean => {
+      if (diaryIntroElRef === undefined) diaryIntroElRef = document.querySelector('[data-section="diaryIntro"]')
+      if (!diaryIntroElRef) return false
+      const rect = diaryIntroElRef.getBoundingClientRect()
+      // Diary intro is in view when its top is above 50% viewport and bottom is below 30%
+      return rect.top <= window.innerHeight * 0.5 && rect.bottom >= window.innerHeight * 0.3
+    }
     const isPastCountdown = (): boolean => {
       if (countdownElRef === undefined) countdownElRef = document.querySelector('[data-section="countdown"]')
       if (!countdownElRef) return false
@@ -2168,6 +2176,7 @@ export default function Home() {
       }
 
       // ─── Section detection using getBoundingClientRect (real-time, no stale cache) ───
+      const atDiaryIntro = isAtDiaryIntro()
       const pastCountdown = isPastCountdown()
       const pastAcara = isPastAcara()
       const pastGallery = isPastGallery()
@@ -2175,9 +2184,8 @@ export default function Home() {
       const pastClosing = isPastClosing()
 
       // ─── Accumulate fractional pixels ───
-      // 5-zone speed: normal → countdown 2x → acara 2x → gallery 1x → RSVP 2x
-      // Closing: normal 1x speed, ScrollTrigger at top -100% ensures section is
-      // fully scrolled past viewport top before handwriting starts
+      // 6-zone speed: normal → diary intro 0.4x → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing 1.5x
+      // Diary intro: slower so handwriting can complete before scroll moves past
       let speed: number
       if (pastClosing) {
         speed = pxPerMs * 1.5  // Slightly faster 1.5x — stays ahead of handwriting animation
@@ -2189,6 +2197,8 @@ export default function Home() {
         speed = pxPerMsAcara   // 2x — faster through acara (event details)
       } else if (pastCountdown) {
         speed = pxPerMsCountdown // 2x — faster through countdown
+      } else if (atDiaryIntro) {
+        speed = pxPerMs * 0.4  // Slow 0.4x — let handwriting finish before moving on
       } else {
         speed = pxPerMs        // 1x — Normal cinematic drift
       }
