@@ -1064,8 +1064,7 @@ function DiaryStorySection() {
         style={{ background: 'linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-dark))', transform: 'scaleX(0)', transformOrigin: 'left center' }}
       />
 
-      <div className="max-w-lg mx-auto">
-        {/* Section heading */}
+      <div className="max-w-lg mx-auto relative z-10">
         <h2 className="text-3xl sm:text-4xl text-center mb-12" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold-dark)' }}>
           Waktu Kian Berlalu
         </h2>
@@ -1123,13 +1122,13 @@ function CountdownSection() {
   }, [])
 
   return (
-    <section ref={sectionRef} data-section="countdown" className="batik-kawung cinema-depth py-28 px-6 text-center" style={{ opacity: 0 }}>
-      <div className="max-w-2xl mx-auto">
-        <h2 className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold-dark)' }}>
+    <section ref={sectionRef} data-section="countdown" className="batik-kawung cinema-depth py-28 px-6 text-center relative" style={{ opacity: 0, color: 'var(--cream)' }}>
+      <div className="max-w-2xl mx-auto relative z-10">
+        <h2 className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold)' }}>
           Menghitung Hari
         </h2>
         <div className="ornament-divider max-w-xs mx-auto mb-14">
-          <span className="text-[var(--gold)] text-lg">&#10047;</span>
+          <span className="text-[var(--gold-light)] text-lg">&#10047;</span>
         </div>
 
         {/* Countdown numbers */}
@@ -1145,7 +1144,7 @@ function CountdownSection() {
                 className="countdown-number text-4xl sm:text-6xl"
                 style={{
                   fontFamily: 'var(--font-serif)',
-                  color: 'var(--gold)',
+                  color: 'var(--gold-light)',
                   animation: i === 0 ? 'breathe 4s ease-in-out infinite' : undefined,
                 }}
               >
@@ -1153,7 +1152,7 @@ function CountdownSection() {
               </div>
               <p
                 className="text-[10px] sm:text-xs tracking-[0.2em] uppercase mt-2"
-                style={{ fontFamily: 'var(--font-body)', color: 'var(--brown-light)' }}
+                style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)' }}
               >
                 {item.label}
               </p>
@@ -1161,7 +1160,7 @@ function CountdownSection() {
           ))}
         </div>
 
-        <p className="text-sm italic" style={{ fontFamily: 'var(--font-serif)', color: 'var(--brown-light)' }}>
+        <p className="text-sm italic" style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold)' }}>
           menuju hari bahagia kami
         </p>
       </div>
@@ -1564,7 +1563,7 @@ function GallerySection() {
 
   return (
     <section ref={sectionRef} data-section="gallery" className="diary-paper-bg cinema-depth py-28 px-6" style={{ opacity: 0 }}>
-      <div className="max-w-4xl mx-auto text-center">
+      <div className="max-w-4xl mx-auto text-center relative z-10">
         <h2 className="gallery-title text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold-dark)' }}>
           Momen Kami
         </h2>

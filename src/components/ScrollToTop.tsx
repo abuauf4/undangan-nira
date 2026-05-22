@@ -20,13 +20,13 @@ export default function ScrollToTop() {
   return (
     <button
       onClick={scrollToTop}
-      className={`fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full border-2 border-[var(--gold)] flex items-center justify-center
+      className={`fixed bottom-6 left-6 w-12 h-12 rounded-full border-2 border-[var(--gold)] flex items-center justify-center
         shadow-lg cursor-pointer transition-all duration-500 ${
           visible
             ? 'opacity-100 translate-y-0 pointer-events-auto'
             : 'opacity-0 translate-y-4 pointer-events-none'
         }`}
-      style={{ background: 'var(--cream)', color: 'var(--gold-dark)' }}
+      style={{ background: 'var(--cream)', color: 'var(--gold-dark)', position: 'fixed', zIndex: 99999 }}
       aria-label="Scroll to top"
       title="Kembali ke atas"
     >
