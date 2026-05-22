@@ -1570,22 +1570,40 @@ function GallerySection() {
       {/* Background handwriting silhouette — Quran verse about love flowing behind photos */}
       <div
         ref={bgTextRef}
-        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+        className="absolute inset-0 pointer-events-none select-none"
         style={{ zIndex: 0 }}
       >
-        <p
-          className="whitespace-pre-line text-center leading-loose"
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontStyle: 'italic',
-            fontSize: 'clamp(1.2rem, 3vw, 2.2rem)',
-            color: 'var(--gold)',
-            opacity: 0.18,
-            maxWidth: '90%',
-          }}
-        >
-          {'Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan hidup dari jenismu sendiri, supaya kamu merasa tenteram kepadanya, dan dijadikan-Nya di antaramu rasa kasih dan sayang. Sesungguhnya pada yang demikian itu benar-benar terdapat tanda-tanda bagi kaum yang berpikir.\n\n— QS. Ar-Rum: 21\n\nPernikahan adalah separuh agama, maka barangsiapa menikah maka ia telah menyempurnakan separuh agamanya, maka bertaqwalah kepada Allah pada separuh yang lainnya.\n\n— HR. Al-Baihaqi\n\nSebaik-baik di antara kalian adalah yang paling baik kepada istrinya.\n\n— HR. Tirmidzi'}
-        </p>
+        {/* Repeated text blocks covering full section height so silhouette is always visible */}
+        {[0, 1, 2, 3].map((block) => (
+          <div
+            key={block}
+            className="flex items-center justify-center"
+            style={{
+              position: 'absolute',
+              top: `${block * 30}%`,
+              left: 0,
+              right: 0,
+              height: '35%',
+            }}
+          >
+            <p
+              className="whitespace-pre-line text-center leading-loose"
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontStyle: 'italic',
+                fontSize: 'clamp(1.2rem, 3vw, 2.2rem)',
+                color: 'var(--gold)',
+                opacity: block % 2 === 0 ? 0.18 : 0.10,
+                maxWidth: '90%',
+              }}
+            >
+              {block === 0 && 'Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan hidup dari jenismu sendiri, supaya kamu merasa tenteram kepadanya, dan dijadikan-Nya di antaramu rasa kasih dan sayang.\n\n— QS. Ar-Rum: 21'}
+              {block === 1 && 'Pernikahan adalah separuh agama, maka barangsiapa menikah maka ia telah menyempurnakan separuh agamanya, maka bertaqwalah kepada Allah pada separuh yang lainnya.\n\n— HR. Al-Baihaqi'}
+              {block === 2 && 'Sebaik-baik di antara kalian adalah yang paling baik kepada istrinya.\n\n— HR. Tirmidzi'}
+              {block === 3 && 'Dan Allah menjadikan bagi kamu pasangan dari jenis kamu sendiri dan menjadikan anak dan cucu dari pasanganmu.\n\n— QS. An-Nahl: 72'}
+            </p>
+          </div>
+        ))}
       </div>
 
       <div className="max-w-4xl mx-auto text-center relative z-10">
@@ -2198,7 +2216,7 @@ export default function Home() {
       } else if (pastCountdown) {
         speed = pxPerMsCountdown // 2x — faster through countdown
       } else if (atDiaryIntro) {
-        speed = pxPerMs * 0.4  // Slow 0.4x — let handwriting finish before moving on
+        speed = pxPerMs * 0.8  // Slow 0.8x — let handwriting finish before moving on
       } else {
         speed = pxPerMs        // 1x — Normal cinematic drift
       }
