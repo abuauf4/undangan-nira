@@ -1805,13 +1805,13 @@ function ClosingSection() {
     }
 
     // ScrollTrigger — Start animation ONLY when closing section top
-    // reaches top 0% (the very top of the viewport).
-    // This ensures the section is FULLY visible before any animation starts.
+    // has scrolled 50% PAST the top of the viewport (top -50%).
+    // This means the section is well into view before animations start.
     // Auto-scroll speed already dropped to 0.2x at top 50%, so by the time
     // this triggers, the section is scrolling very slowly and animations are visible.
     ScrollTrigger.create({
       trigger: section,
-      start: 'top 0%',
+      start: 'top -50%',
       onEnter: () => {
         if (hasAnimated.current) return
         hasAnimated.current = true
