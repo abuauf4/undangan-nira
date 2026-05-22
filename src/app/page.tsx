@@ -1419,11 +1419,11 @@ function GallerySection() {
           const arriveAngle = (Math.random() - 0.5) * 20
           const arriveX = (Math.random() - 0.5) * 60
 
-          // CINEMATIC REVEAL — four phases:
-          // 1. Rise from depth (parallax fog)
-          // 2. Golden shimmer (opacity peak + scale overshoot)
-          // 3. Focus & settle (de-blur + final position)
-          // 4. Breathing float (alive, organic)
+          // SMOOTH REVEAL — two phases, no scale/rotation during animation:
+          // 1. Fade in from blur (photo emerges from fog)
+          // 2. Focus & settle (clear + final position)
+          // 3. Breathing float (alive, organic)
+          // NO scale animation during reveal — prevents glitch from layout thrashing
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -1434,50 +1434,35 @@ function GallerySection() {
             delay: staggerDelay,
           })
 
-          // Phase 1: Rise from deep fog — like a memory surfacing from the dark
+          // Phase 1: Fade in from fog — like a memory surfacing
           tl.fromTo(memory,
             {
               opacity: 0,
-              x: arriveX,
-              y: startY,
-              scale: startScale,
-              rotation: arriveAngle,
-              filter: 'blur(16px) brightness(0.3)',
+              x: arriveX * 0.5,
+              y: startY * 0.4,
+              rotation: rotations.current[i],
+              filter: 'blur(10px) brightness(0.5)',
             },
             {
-              opacity: depth.opacity * 0.4,
-              x: depth.x * 2,
-              y: (verticalOffsets.current[i] || 0) + depth.y * 2,
-              scale: depth.scale * 0.75,
-              rotation: rotations.current[i] + (Math.random() - 0.5) * 4,
-              filter: 'blur(8px) brightness(0.7)',
-              duration: isMobile ? 0.7 : 1.0,
+              opacity: depth.opacity * 0.7,
+              x: depth.x,
+              y: (verticalOffsets.current[i] || 0) + depth.y,
+              rotation: rotations.current[i],
+              filter: 'blur(4px) brightness(0.8)',
+              duration: isMobile ? 0.6 : 0.8,
               ease: 'power2.out',
             }
           )
 
-          // Phase 2: Golden shimmer — light catches the photo, a brief flash
-          tl.to(memory, {
-            opacity: Math.min(depth.opacity * 1.1, 1),
-            scale: depth.scale * 1.06,
-            filter: 'blur(2px) brightness(1.3)',
-            duration: isMobile ? 0.3 : 0.4,
-            ease: 'power2.in',
-          })
-
-          // Phase 3: Focus & settle — eye adjusts, memory becomes clear
+          // Phase 2: Focus & settle — memory becomes clear
           tl.to(memory, {
             opacity: depth.opacity,
-            x: depth.x,
-            y: (verticalOffsets.current[i] || 0) + depth.y,
-            scale: depth.scale,
-            rotation: rotations.current[i],
             filter: 'blur(0px) brightness(1)',
-            duration: isMobile ? 0.5 : 0.7,
-            ease: isFeatured ? 'back.out(1.6)' : 'power3.out',
+            duration: isMobile ? 0.4 : 0.6,
+            ease: 'power2.out',
           })
 
-          // Phase 4: Breathing float — the memory is alive, gently drifting
+          // Phase 3: Breathing float — the memory is alive, gently drifting
           tl.call(() => {
             const floatDistance = isFeatured ? 3.5 : 2
             const floatDuration = isFeatured ? 4.5 : 3 + Math.random() * 2.5
