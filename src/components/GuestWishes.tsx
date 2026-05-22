@@ -87,10 +87,10 @@ export default function GuestWishes() {
     return () => ctx.revert()
   }, [])
 
-  // Fetch wishes from API on mount
+  // Fetch approved wishes from API on mount
   const fetchWishes = useCallback(async () => {
     try {
-      const res = await fetch('/api/wishes')
+      const res = await fetch('/api/wishes?approved=true')
       if (res.ok) {
         const data = await res.json()
         if (Array.isArray(data) && data.length > 0) {

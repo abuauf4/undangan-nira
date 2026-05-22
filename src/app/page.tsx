@@ -2056,6 +2056,31 @@ export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null)
   const userScrollingRef = useRef(false)
 
+  // Dynamic wedding data — fetched from DB, fallback to hardcoded WEDDING
+  const [weddingData, setWeddingData] = useState(WEDDING)
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then(r => r.json())
+      .then(data => {
+        if (data && Object.keys(data).length > 0) {
+          setWeddingData(prev => {
+            const merged = { ...prev }
+            // Parse JSON fields
+            try { merged.timeline = JSON.parse(data.timeline || JSON.stringify(prev.timeline)) } catch {}
+            try { merged.galleryImages = JSON.parse(data.galleryImages || JSON.stringify(prev.galleryImages)) } catch {}
+            try { merged.galleryCaptions = JSON.parse(data.galleryCaptions || JSON.stringify(prev.galleryCaptions)) } catch {}
+            // Simple string fields
+            for (const key of ['groom', 'bride', 'groomParents', 'brideParents', 'akadDate', 'resepsiDate', 'resepsiEnd', 'venue', 'address', 'lamaranDate']) {
+              if (data[key]) (merged as Record<string, unknown>)[key] = data[key]
+            }
+            return merged
+          })
+        }
+      })
+      .catch(() => {}) // silently fail, use hardcoded
+  }, [])
+
   const handlePreloaderComplete = useCallback(() => setIsLoading(false), [])
 
   const handleOpenStart = useCallback(() => {

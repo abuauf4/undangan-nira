@@ -10,11 +10,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model WeddingConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
 model Wish {
   id        String   @id @default(cuid())
   name      String
   message   String
   avatar    String   @default("")
+  approved  Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 

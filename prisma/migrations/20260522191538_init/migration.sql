@@ -1,0 +1,18 @@
+-- CreateTable
+CREATE TABLE "Wish" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "avatar" TEXT NOT NULL DEFAULT '',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "RSVP" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "attending" BOOLEAN NOT NULL DEFAULT true,
+    "guests" INTEGER NOT NULL DEFAULT 1,
+    "message" TEXT NOT NULL DEFAULT '',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

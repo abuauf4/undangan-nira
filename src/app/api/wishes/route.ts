@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-// GET /api/wishes — Fetch all wishes, newest first
-export async function GET() {
+// GET /api/wishes — Fetch wishes (optionally filter by approved status)
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const approved = searchParams.get('approved')
+
+    const where = approved !== null ? { approved: approved === 'true' } : {}
+
     const wishes = await db.wish.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
     })
     return NextResponse.json(wishes)
@@ -39,11 +45,13 @@ export async function POST(request: NextRequest) {
     // Generate avatar initials from name
     const avatar = name.trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 
+    // New wishes are auto-approved by default
     const wish = await db.wish.create({
       data: {
         name: name.trim(),
         message: message.trim(),
         avatar,
+        approved: true,
       },
     })
 
