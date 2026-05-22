@@ -1878,7 +1878,7 @@ function ClosingSection() {
           }
         })
       },
-      { threshold: 0.3 }
+      { threshold: 0.5 }
     )
     closingObserver.observe(section)
 
