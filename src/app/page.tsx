@@ -1919,17 +1919,17 @@ function ClosingSection() {
           Cerita mereka belum selesai...
         </div>
 
-        {/* The date — appears after dust settles, the only thing left */}
+        {/* Credit — appears after dust settles, the only thing left */}
         <div
           ref={dateRef}
           className="mt-8"
           style={{ opacity: 0 }}
         >
           <p
-            className="text-sm tracking-[0.4em]"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', opacity: 0.7 }}
+            className="text-xs tracking-[0.15em] leading-relaxed"
+            style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', opacity: 0.5, fontStyle: 'italic' }}
           >
-            05 . 07 . 2026
+            Kami Nauka Creative Digital mempersembahkan ini untuk kedua mempelai
           </p>
         </div>
       </div>
