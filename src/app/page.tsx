@@ -1397,33 +1397,23 @@ function GallerySection() {
         )
       }
 
-      // ─── Golden light cascade — photos reveal one by one ───
+      // ─── Photos reveal — fast stagger so all visible during auto-scroll ───
+      // Problem: slow cascade + auto-scroll = only first photo visible
+      // Fix: start photos at 0.15 opacity (always slightly visible), short stagger (0.06s),
+      // fast 2-phase animation so ALL photos animate before scroll moves past
       const memories = section.querySelectorAll('.memory-photo')
       if (memories.length > 0) {
+        // Set all photos to base opacity immediately so they're never invisible
+        memories.forEach((memory) => {
+          gsap.set(memory, { opacity: 0.15, filter: 'blur(6px) brightness(0.6)' })
+        })
+
         memories.forEach((memory, i) => {
           const depth = depthOffsets.current[i]
           const isFeatured = i % 4 === 0
-          const isFirst = i === 0
 
-          // Stagger — cascade from left to right, like turning pages
-          const cascadeDelay = isMobile ? 0.15 * i : 0.22 * i
-          const featuredPulse = isFeatured ? 0.15 : 0
-          const staggerDelay = cascadeDelay + featuredPulse
-
-          // Parallax depth — closer memories rise faster
-          const depthSpeed = isFeatured ? 1.2 : isFirst ? 1.4 : 0.7 + Math.random() * 0.3
-          const startY = (isMobile ? 60 : 100) * depthSpeed
-          const startScale = (depth.scale || 0.9) * 0.4
-
-          // Each photo arrives from a unique angle
-          const arriveAngle = (Math.random() - 0.5) * 20
-          const arriveX = (Math.random() - 0.5) * 60
-
-          // SMOOTH REVEAL — two phases, no scale/rotation during animation:
-          // 1. Fade in from blur (photo emerges from fog)
-          // 2. Focus & settle (clear + final position)
-          // 3. Breathing float (alive, organic)
-          // NO scale animation during reveal — prevents glitch from layout thrashing
+          // Short stagger — all photos animate within ~0.3s
+          const staggerDelay = isMobile ? 0.04 * i : 0.06 * i
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -1434,31 +1424,22 @@ function GallerySection() {
             delay: staggerDelay,
           })
 
-          // Phase 1: Fade in from fog — like a memory surfacing
-          tl.fromTo(memory,
-            {
-              opacity: 0,
-              x: arriveX * 0.5,
-              y: startY * 0.4,
-              rotation: rotations.current[i],
-              filter: 'blur(10px) brightness(0.5)',
-            },
-            {
-              opacity: depth.opacity * 0.7,
-              x: depth.x,
-              y: (verticalOffsets.current[i] || 0) + depth.y,
-              rotation: rotations.current[i],
-              filter: 'blur(4px) brightness(0.8)',
-              duration: isMobile ? 0.6 : 0.8,
-              ease: 'power2.out',
-            }
-          )
+          // Phase 1: Emerge — from faint/blurry to mostly visible
+          tl.to(memory, {
+            opacity: depth.opacity * 0.85,
+            x: depth.x,
+            y: (verticalOffsets.current[i] || 0) + depth.y,
+            rotation: rotations.current[i],
+            filter: 'blur(2px) brightness(0.9)',
+            duration: isMobile ? 0.4 : 0.5,
+            ease: 'power2.out',
+          })
 
-          // Phase 2: Focus & settle — memory becomes clear
+          // Phase 2: Focus — fully clear
           tl.to(memory, {
             opacity: depth.opacity,
             filter: 'blur(0px) brightness(1)',
-            duration: isMobile ? 0.4 : 0.6,
+            duration: isMobile ? 0.25 : 0.35,
             ease: 'power2.out',
           })
 
