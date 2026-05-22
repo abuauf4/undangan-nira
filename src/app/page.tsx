@@ -2156,7 +2156,7 @@ export default function Home() {
       // fully scrolled past viewport top before handwriting starts
       let speed: number
       if (pastClosing) {
-        speed = pxPerMs * 0.5  // Slower 0.5x — give breathing room for handwriting animation
+        speed = pxPerMs * 1.5  // Slightly faster 1.5x — stays ahead of handwriting animation
       } else if (pastRSVP) {
         speed = pxPerMsRSVP    // 2x — cruise through RSVP/envelope/wishes
       } else if (pastGallery) {
