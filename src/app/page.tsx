@@ -64,9 +64,9 @@ const WEDDING = {
 /* ═══════════════════════════════════════════════════════════
    AUTO-SCROLL NOTE:
    Speed zones (getBoundingClientRect, real-time detection):
-   Normal 1x → Countdown 2x → Acara 2x → Gallery 1x → RSVP→Wishes 2x → Closing 0.2x
+   Normal 1x → Countdown 2x → Acara 2x → Gallery 1x → RSVP→Wishes 2x → Closing 1x
    Only diary gets cinematic lock (full stop via custom events).
-   Closing: NO LOCK. Speed 0.2x + ScrollTrigger at top 0% = animations play while slowly drifting.
+   Closing: NO LOCK. Normal speed + ScrollTrigger at top -100% = animations start when section is fully past viewport top.
    No pause = no deadlock from ScrollTrigger.refresh() after diary pin removal.
    Auto-scroll starts 10 seconds after cover opens.
    ═══════════════════════════════════════════════════════════ */
@@ -1804,14 +1804,13 @@ function ClosingSection() {
       return delay + reversed.length * 0.08 + 0.7
     }
 
-    // ScrollTrigger — Start animation ONLY when closing section top
-    // has scrolled 50% PAST the top of the viewport (top -50%).
-    // This means the section is well into view before animations start.
-    // Auto-scroll speed already dropped to 0.2x at top 50%, so by the time
-    // this triggers, the section is scrolling very slowly and animations are visible.
+    // ScrollTrigger — Start animation when closing section top has scrolled
+    // 100% PAST the top of the viewport (top -100%). This means the section
+    // is fully past the viewport top edge before handwriting starts.
+    // Normal auto-scroll speed, no slow-down needed.
     ScrollTrigger.create({
       trigger: section,
-      start: 'top -50%',
+      start: 'top -100%',
       onEnter: () => {
         if (hasAnimated.current) return
         hasAnimated.current = true
@@ -1864,9 +1863,9 @@ function ClosingSection() {
           gsap.to(dateRef.current, { opacity: 1, duration: 2, ease: 'power2.out', delay: afterDust })
         }
 
-        // Closing animation plays while auto-scroll drifts at 0.2x speed.
-        // ScrollTrigger fires at top 0%, so section is fully visible.
-        // No event dispatch needed — speed-based approach, no cinematic lock.
+        // Closing animation plays while auto-scroll at normal 1x speed.
+        // ScrollTrigger fires at top -100%, so section is fully past viewport top.
+        // No event dispatch needed — no cinematic lock.
       },
     })
   }, [])
@@ -2061,7 +2060,7 @@ export default function Home() {
     // Acara: 2x speed = faster through event details
     // Gallery: 1x speed = normal cinematic pace for photos
     // RSVP→Wishes: 2x speed = cruise through RSVP/envelope/wishes
-    // Closing: 0.2x ultra slow = ScrollTrigger fires at top 0%, animations play while drifting
+    // Closing: 1x normal speed, ScrollTrigger at top -100%
     const pxPerMs = 0.025
     const pxPerMsCountdown = pxPerMs * 2  // 2x speed at countdown section
     const pxPerMsAcara = pxPerMs * 2      // 2x speed at acara section
@@ -2147,13 +2146,12 @@ export default function Home() {
       const pastClosing = isPastClosing()
 
       // ─── Accumulate fractional pixels ───
-      // 6-zone speed: normal → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing 0.2x
-      // Closing: 0.2x = ultra slow drift, slow enough for handwriting + dust dissolve
-      // NO PAUSE — just slow speed. This prevents any deadlock from ScrollTrigger.refresh()
-      // ScrollTrigger fires at top 0%, so section is fully visible when animations start
+      // 5-zone speed: normal → countdown 2x → acara 2x → gallery 1x → RSVP 2x
+      // Closing: normal 1x speed, ScrollTrigger at top -100% ensures section is
+      // fully scrolled past viewport top before handwriting starts
       let speed: number
       if (pastClosing) {
-        speed = pxPerMs * 0.2  // Ultra slow — see all closing animations while scrolling past
+        speed = pxPerMs  // Normal speed — handwriting triggers at top -100%
       } else if (pastRSVP) {
         speed = pxPerMsRSVP    // 2x — cruise through RSVP/envelope/wishes
       } else if (pastGallery) {
