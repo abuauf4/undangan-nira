@@ -64,9 +64,9 @@ const WEDDING = {
 /* ═══════════════════════════════════════════════════════════
    AUTO-SCROLL NOTE:
    Speed zones (getBoundingClientRect, real-time detection):
-   Normal 1x → Countdown 2x → Acara 2x → Gallery 1x → RSVP→Wishes 2x → Closing 0.4x
+   Normal 1x → Countdown 2x → Acara 2x → Gallery 1x → RSVP→Wishes 2x → Closing 0.2x
    Only diary gets cinematic lock (full stop via custom events).
-   Closing: NO LOCK. Speed 0.4x = slow enough for animations to play while scrolling.
+   Closing: NO LOCK. Speed 0.2x + ScrollTrigger at top 0% = animations play while slowly drifting.
    No pause = no deadlock from ScrollTrigger.refresh() after diary pin removal.
    Auto-scroll starts 10 seconds after cover opens.
    ═══════════════════════════════════════════════════════════ */
@@ -1804,14 +1804,14 @@ function ClosingSection() {
       return delay + reversed.length * 0.08 + 0.7
     }
 
-    // ScrollTrigger — Start animation when section is well into viewport
-    // Uses top 30% instead of top 80% so animations only start when the
-    // section is prominently visible (not just barely entering from bottom).
-    // Auto-scroll speed already dropped to 0.8x at top 90%, so by the time
-    // this triggers, the section is scrolling slowly and animations are visible.
+    // ScrollTrigger — Start animation ONLY when closing section top
+    // reaches top 0% (the very top of the viewport).
+    // This ensures the section is FULLY visible before any animation starts.
+    // Auto-scroll speed already dropped to 0.2x at top 50%, so by the time
+    // this triggers, the section is scrolling very slowly and animations are visible.
     ScrollTrigger.create({
       trigger: section,
-      start: 'top 30%',
+      start: 'top 0%',
       onEnter: () => {
         if (hasAnimated.current) return
         hasAnimated.current = true
@@ -1864,7 +1864,8 @@ function ClosingSection() {
           gsap.to(dateRef.current, { opacity: 1, duration: 2, ease: 'power2.out', delay: afterDust })
         }
 
-        // Closing animation plays while auto-scroll drifts at 0.4x speed.
+        // Closing animation plays while auto-scroll drifts at 0.2x speed.
+        // ScrollTrigger fires at top 0%, so section is fully visible.
         // No event dispatch needed — speed-based approach, no cinematic lock.
       },
     })
@@ -2060,7 +2061,7 @@ export default function Home() {
     // Acara: 2x speed = faster through event details
     // Gallery: 1x speed = normal cinematic pace for photos
     // RSVP→Wishes: 2x speed = cruise through RSVP/envelope/wishes
-    // Closing: PAUSED during animation, then 0.8x after animation completes
+    // Closing: 0.2x ultra slow = ScrollTrigger fires at top 0%, animations play while drifting
     const pxPerMs = 0.025
     const pxPerMsCountdown = pxPerMs * 2  // 2x speed at countdown section
     const pxPerMsAcara = pxPerMs * 2      // 2x speed at acara section
@@ -2146,12 +2147,13 @@ export default function Home() {
       const pastClosing = isPastClosing()
 
       // ─── Accumulate fractional pixels ───
-      // 6-zone speed: normal → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing 0.4x
-      // Closing: 0.4x = super slow drift, slow enough for handwriting + dust dissolve
+      // 6-zone speed: normal → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing 0.2x
+      // Closing: 0.2x = ultra slow drift, slow enough for handwriting + dust dissolve
       // NO PAUSE — just slow speed. This prevents any deadlock from ScrollTrigger.refresh()
+      // ScrollTrigger fires at top 0%, so section is fully visible when animations start
       let speed: number
       if (pastClosing) {
-        speed = pxPerMs * 0.4  // Very slow — see all closing animations while scrolling past
+        speed = pxPerMs * 0.2  // Ultra slow — see all closing animations while scrolling past
       } else if (pastRSVP) {
         speed = pxPerMsRSVP    // 2x — cruise through RSVP/envelope/wishes
       } else if (pastGallery) {
