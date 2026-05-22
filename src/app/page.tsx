@@ -1735,7 +1735,9 @@ function ClosingSection() {
       const fullText = el.textContent || ''
       if (!fullText.trim()) return delay
 
-      el.innerHTML = ''
+      // Prevent React reconciliation from wiping out our DOM changes
+      // by creating a detached fragment and replacing all children at once
+      const fragment = document.createDocumentFragment()
       const allChars: HTMLSpanElement[] = []
       const words = fullText.split(' ')
 
@@ -1750,14 +1752,18 @@ function ClosingSection() {
           ws.appendChild(cs)
           allChars.push(cs)
         }
-        el.appendChild(ws)
+        fragment.appendChild(ws)
         if (wi < words.length - 1) {
           const sp = document.createElement('span')
           sp.innerHTML = '\u00A0'
           sp.style.display = 'inline'
-          el.appendChild(sp)
+          fragment.appendChild(sp)
         }
       })
+
+      // Replace content in one operation to minimize React conflicts
+      el.innerHTML = ''
+      el.appendChild(fragment)
 
       gsap.to(allChars, {
         opacity: 1,
@@ -1804,13 +1810,11 @@ function ClosingSection() {
       return delay + reversed.length * 0.08 + 0.7
     }
 
-    // ScrollTrigger — Start animation when closing section top has scrolled
-    // 100% PAST the top of the viewport (top -100%). This means the section
-    // is fully past the viewport top edge before handwriting starts.
-    // Normal auto-scroll speed, no slow-down needed.
+    // ScrollTrigger — Start animation when closing section is near viewport center
+    // Using 'top 80%' so it triggers reliably when the section scrolls into view
     ScrollTrigger.create({
       trigger: section,
-      start: 'top -100%',
+      start: 'top 80%',
       onEnter: () => {
         if (hasAnimated.current) return
         hasAnimated.current = true
@@ -1923,11 +1927,11 @@ function ClosingSection() {
         <div
           ref={dateRef}
           className="mt-8"
-          style={{ opacity: 0 }}
+          style={{ opacity: 0, pointerEvents: 'none' }}
         >
           <p
-            className="text-xs tracking-[0.15em] leading-relaxed"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', opacity: 0.5, fontStyle: 'italic' }}
+            className="text-[10px] sm:text-xs tracking-[0.1em] leading-relaxed"
+            style={{ fontFamily: "'Inter', sans-serif", color: '#ffffff', opacity: 0.4 }}
           >
             Kami Nauka Creative Digital mempersembahkan ini untuk kedua mempelai
           </p>
