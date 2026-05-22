@@ -43,16 +43,16 @@ export default function MusicPlayer({ isPlaying, onToggle, audioRef }: MusicPlay
 
   return (
     <>
-      {/* Mini floating button - always visible */}
+      {/* Mini floating button - always visible on screen */}
       <button
         onClick={() => {
           onToggle()
           if (!isPlaying) setExpanded(true)
         }}
-        className={`fixed bottom-6 right-6 z-[9999] w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[var(--gold)] flex items-center justify-center
+        className={`fixed bottom-6 right-6 w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[var(--gold)] flex items-center justify-center
           shadow-[0_0_20px_rgba(201,169,110,0.3)] transition-all duration-300 cursor-pointer music-pulse
           hover:shadow-[0_0_30px_rgba(201,169,110,0.5)] hover:scale-110 ${isPlaying ? 'playing' : ''}`}
-        style={{ background: 'rgba(250, 245, 230, 0.95)', color: 'var(--gold-dark)', backdropFilter: 'blur(8px)' }}
+        style={{ background: 'rgba(250, 245, 230, 0.95)', color: 'var(--gold-dark)', backdropFilter: 'blur(8px)', zIndex: 99999, isolation: 'isolate' }}
         title={isPlaying ? 'Matikan Musik' : 'Putar Musik'}
       >
         {isPlaying ? (
@@ -68,11 +68,12 @@ export default function MusicPlayer({ isPlaying, onToggle, audioRef }: MusicPlay
 
       {/* Expanded player panel */}
       <div
-        className={`fixed bottom-24 right-6 z-50 transition-all duration-500 ${
+        className={`fixed bottom-24 right-6 transition-all duration-500 ${
           expanded && isPlaying
             ? 'opacity-100 translate-y-0 pointer-events-auto'
             : 'opacity-0 translate-y-4 pointer-events-none'
         }`}
+        style={{ zIndex: 99999 }}
       >
         <div
           className="w-72 rounded-2xl border-2 border-[var(--gold)]/40 shadow-2xl overflow-hidden"
