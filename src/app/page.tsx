@@ -2392,17 +2392,7 @@ export default function Home() {
             <FooterSection />
           </main>
 
-          <ScrollToTop />
         </SmoothScroll>
-
-        {/* Music player — rendered via portal to <body>, always visible on screen */}
-        {isOpen && (
-          <MusicPlayerComponent
-            isPlaying={isPlaying}
-            onToggle={toggleMusic}
-            audioRef={audioRef}
-          />
-        )}
 
         {/* Control buttons — bottom left, small and minimal, rendered via portal */}
         {isOpen && typeof window !== 'undefined' && createPortal(
