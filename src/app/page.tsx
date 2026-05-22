@@ -1810,68 +1810,79 @@ function ClosingSection() {
       return delay + reversed.length * 0.08 + 0.7
     }
 
-    // ScrollTrigger — Start animation when closing section is near viewport center
-    // Using 'top 80%' so it triggers reliably when the section scrolls into view
-    ScrollTrigger.create({
-      trigger: section,
-      start: 'top 80%',
-      onEnter: () => {
-        if (hasAnimated.current) return
-        hasAnimated.current = true
+    // ScrollTrigger — Start animation when closing section is in view
+    // Use IntersectionObserver for reliable detection, then dispatch
+    // closing-sequence-start to pause auto-scroll during the animation
+    const closingObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasAnimated.current) {
+            hasAnimated.current = true
+            closingObserver.disconnect()
 
-        // Fade section in
-        gsap.to(section, { opacity: 1, duration: 1, ease: 'power2.out' })
+            // Pause auto-scroll so user can watch the animation
+            window.dispatchEvent(new CustomEvent('closing-sequence-start'))
 
-        // ═══ PHASE 1: HANDWRITING ═══
-        const titleEnd = closingHandwriting(titleRef.current, 0.035, 0.1, 0.3)
-        const subtitleEnd = closingHandwriting(subtitleRef.current, 0.03, 0.09, titleEnd + 0.5)
+            // Fade section in
+            gsap.to(section, { opacity: 1, duration: 1, ease: 'power2.out' })
 
-        // Arabic appears gently — no handwriting
-        if (arabicRef.current) {
-          gsap.to(arabicRef.current, { opacity: 1, duration: 1.2, ease: 'power2.out', delay: subtitleEnd + 0.3 })
-        }
+            // ═══ PHASE 1: HANDWRITING ═══
+            const titleEnd = closingHandwriting(titleRef.current, 0.035, 0.1, 0.3)
+            const subtitleEnd = closingHandwriting(subtitleRef.current, 0.03, 0.09, titleEnd + 0.5)
 
-        const transEnd = closingHandwriting(transRef.current, 0.025, 0.08, subtitleEnd + 1.0)
+            // Arabic appears gently — no handwriting
+            if (arabicRef.current) {
+              gsap.to(arabicRef.current, { opacity: 1, duration: 1.2, ease: 'power2.out', delay: subtitleEnd + 0.3 })
+            }
 
-        // Divider appears
-        if (dividerRef.current) {
-          gsap.to(dividerRef.current, { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(2)', delay: transEnd + 0.3 })
-        }
+            const transEnd = closingHandwriting(transRef.current, 0.025, 0.08, subtitleEnd + 1.0)
 
-        const footerEnd = closingHandwriting(footerRef.current, 0.035, 0.1, transEnd + 0.8)
-        const finalEnd = closingHandwriting(finalRef.current, 0.06, 0.15, footerEnd + 0.8)
+            // Divider appears
+            if (dividerRef.current) {
+              gsap.to(dividerRef.current, { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(2)', delay: transEnd + 0.3 })
+            }
 
-        // ═══ PHASE 2: DUST DISSOLVE ═══
-        // After everything is written, hold for a moment...
-        // Then the story evaporates like dust
-        const dustDelay = finalEnd + 2.5 // hold 2.5s to let it sink in
+            const footerEnd = closingHandwriting(footerRef.current, 0.035, 0.1, transEnd + 0.8)
+            const finalEnd = closingHandwriting(finalRef.current, 0.06, 0.15, footerEnd + 0.8)
 
-        const titleDust = dustDissolve(titleRef.current, dustDelay)
-        const subtitleDust = dustDissolve(subtitleRef.current, dustDelay + 0.4)
-        const transDust = dustDissolve(transRef.current, dustDelay + 0.8)
-        const footerDust = dustDissolve(footerRef.current, dustDelay + 1.2)
-        const finalDust = dustDissolve(finalRef.current, dustDelay + 1.6)
+            // ═══ PHASE 2: DUST DISSOLVE ═══
+            const dustDelay = finalEnd + 2.5
 
-        // Divider fades
-        if (dividerRef.current) {
-          gsap.to(dividerRef.current, { opacity: 0, duration: 0.8, ease: 'power2.in', delay: dustDelay + 1.0 })
-        }
+            const titleDust = dustDissolve(titleRef.current, dustDelay)
+            const subtitleDust = dustDissolve(subtitleRef.current, dustDelay + 0.4)
+            const transDust = dustDissolve(transRef.current, dustDelay + 0.8)
+            const footerDust = dustDissolve(footerRef.current, dustDelay + 1.2)
+            const finalDust = dustDissolve(finalRef.current, dustDelay + 1.6)
 
-        // ═══ AFTER DUST: Only the doa remains ═══
-        // The story is gone, but the prayer stays
-        // Arabic text stays visible (it's permanent — the doa doesn't dissolve)
-        // Date appears — the only thing left after the dust settles
-        const afterDust = Math.max(titleDust, subtitleDust, transDust, footerDust, finalDust) + 1.0
+            // Divider fades
+            if (dividerRef.current) {
+              gsap.to(dividerRef.current, { opacity: 0, duration: 0.8, ease: 'power2.in', delay: dustDelay + 1.0 })
+            }
 
-        if (dateRef.current) {
-          gsap.to(dateRef.current, { opacity: 1, duration: 2, ease: 'power2.out', delay: afterDust })
-        }
+            // ═══ AFTER DUST: Only the doa remains ═══
+            const afterDust = Math.max(titleDust, subtitleDust, transDust, footerDust, finalDust) + 1.0
 
-        // Closing animation plays while auto-scroll at normal 1x speed.
-        // ScrollTrigger fires at top -100%, so section is fully past viewport top.
-        // No event dispatch needed — no cinematic lock.
+            if (dateRef.current) {
+              gsap.to(dateRef.current, { opacity: 1, duration: 2, ease: 'power2.out', delay: afterDust,
+                onComplete: () => {
+                  // Resume auto-scroll after closing animation is fully done
+                  window.dispatchEvent(new CustomEvent('closing-sequence-complete'))
+                }
+              })
+            } else {
+              // No credit element — just resume after dust settles
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('closing-sequence-complete'))
+              }, (afterDust + 2) * 1000)
+            }
+          }
+        })
       },
-    })
+      { threshold: 0.3 }
+    )
+    closingObserver.observe(section)
+
+    return () => closingObserver.disconnect()
   }, [])
 
   return (
@@ -2166,10 +2177,11 @@ export default function Home() {
       animationId = requestAnimationFrame(tick)
     }, 10000)
 
-    // ═══ Cinematic lock — diary ONLY ═══
+    // ═══ Cinematic lock — diary AND closing ═══
     // diary-sequence-start: dispatched by DiaryStorySection when scroll reaches top 0%
     // diary-sequence-complete: dispatched when diary animations finish
-    // Closing: NO LOCK. Speed transitions to 0.4x via getBoundingClientRect detection.
+    // closing-sequence-start: dispatched by ClosingSection when it enters viewport
+    // closing-sequence-complete: dispatched when closing animations finish
     // No pause = no deadlock from ScrollTrigger.refresh() after diary pin removal.
     const onDiaryStart = () => { cinematicLock = true }
 
@@ -2185,8 +2197,17 @@ export default function Home() {
       closingElRef = undefined
     }
 
+    const onClosingStart = () => { cinematicLock = true }
+
+    const onClosingComplete = () => {
+      cinematicLock = false
+      userScrollingRef.current = false
+    }
+
     window.addEventListener('diary-sequence-start', onDiaryStart)
     window.addEventListener('diary-sequence-complete', onDiaryComplete)
+    window.addEventListener('closing-sequence-start', onClosingStart)
+    window.addEventListener('closing-sequence-complete', onClosingComplete)
 
     return () => {
       clearTimeout(startTimeout)
@@ -2194,6 +2215,8 @@ export default function Home() {
       clearTimeout(resumeTimeout)
       window.removeEventListener('diary-sequence-start', onDiaryStart)
       window.removeEventListener('diary-sequence-complete', onDiaryComplete)
+      window.removeEventListener('closing-sequence-start', onClosingStart)
+      window.removeEventListener('closing-sequence-complete', onClosingComplete)
     }
   }, [isOpen])
 
