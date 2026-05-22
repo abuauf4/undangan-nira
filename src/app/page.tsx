@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import JasmineParticles from '@/components/JasmineParticles'
+import DriedLeaves from '@/components/DriedLeaves'
 import Preloader from '@/components/Preloader'
 import SmoothScroll from '@/components/SmoothScroll'
 import CoverSectionComponent from '@/components/CoverSection'
@@ -1876,27 +1876,7 @@ function ClosingSection() {
       <div className="gold-light-leak absolute inset-0 pointer-events-none" />
 
       {/* Final petals — the last visible movement before silence */}
-      <div className="absolute inset-0 pointer-events-none z-25 overflow-hidden">
-        {[15, 35, 55, 72, 88].map((left, i) => (
-          <div
-            key={`final-petal-${i}`}
-            style={{
-              position: 'absolute',
-              left: `${left}%`,
-              top: '-20px',
-              width: `${8 + i * 2}px`,
-              height: `${10 + i * 2}px`,
-              opacity: 0,
-              animation: `finalPetalDrift ${7 + i * 1.5}s ease-in ${5 + i * 1.5}s forwards`,
-            }}
-          >
-            <svg width="100%" height="100%" viewBox="0 0 20 24" fill="none">
-              <path d="M10 0C10 0 14 4 14 10C14 16 10 24 10 24C10 24 6 16 6 10C6 4 10 0 10 0Z"
-                fill={`rgba(201,169,110,${0.2 + i * 0.04})`} />
-            </svg>
-          </div>
-        ))}
-      </div>
+      {/* DriedLeaves component handles the convergence animation automatically */}
 
       <div className="relative z-10 max-w-2xl mx-auto">
         {/* Title — handwriting reveal, then dust dissolve */}
@@ -2295,7 +2275,7 @@ export default function Home() {
         <SmoothScroll>
           <main className="relative" style={{ touchAction: 'manipulation' }}>
             <CursorFollower />
-            <JasmineParticles />
+            <DriedLeaves />
 
             {/* The Diary — each section is a page */}
             <BismillahSection />

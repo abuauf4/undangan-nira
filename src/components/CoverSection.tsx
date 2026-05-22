@@ -91,20 +91,10 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
     setTimeout(() => onOpen(), 2200)
   }, [isOpening, onOpen, onOpenStart])
 
-  // Petal configurations — 12 petals with varied timing
-  const petalConfigs = [
-    { left: 8, size: 9, duration: 10, delay: 0, opacity: 0.2 },
-    { left: 18, size: 14, duration: 12, delay: 1.5, opacity: 0.3 },
-    { left: 28, size: 7, duration: 9, delay: 0.8, opacity: 0.15 },
-    { left: 38, size: 16, duration: 11, delay: 2.2, opacity: 0.35 },
-    { left: 48, size: 6, duration: 10, delay: 0.3, opacity: 0.12 },
-    { left: 55, size: 12, duration: 11, delay: 1.8, opacity: 0.28 },
-    { left: 65, size: 8, duration: 9.5, delay: 2.8, opacity: 0.18 },
-    { left: 72, size: 10, duration: 10.5, delay: 0.6, opacity: 0.22 },
-    { left: 78, size: 15, duration: 12, delay: 2, opacity: 0.32 },
-    { left: 85, size: 7, duration: 11, delay: 1.2, opacity: 0.14 },
-    { left: 92, size: 11, duration: 10, delay: 3, opacity: 0.25 },
-    { left: 96, size: 5, duration: 9, delay: 0.5, opacity: 0.1 },
+  // Two dried leaves on the cover — hinting at the story to come
+  const leafConfigs = [
+    { left: 25, size: 22, duration: 14, delay: 0.5, opacity: 0.35, isLeafA: true },
+    { left: 70, size: 20, duration: 16, delay: 1.2, opacity: 0.3, isLeafA: false },
   ]
 
   return (
@@ -247,29 +237,46 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
         }}
       />
 
-      {/* Floating jasmine petals */}
+      {/* Two dried leaves drifting — the beginning of their journey */}
       <div
         ref={petalContainerRef}
         className="absolute inset-0 z-30 pointer-events-none"
         style={{ transition: 'transform 0.8s ease-out', willChange: 'transform' }}
       >
-        {petalConfigs.map((config, i) => (
+        {leafConfigs.map((config, i) => (
           <div
-            key={`petal-${i}`}
+            key={`leaf-${i}`}
             className="absolute"
             style={{
               left: `${config.left}%`,
               top: '-5%',
               width: config.size,
-              height: config.size * 1.2,
+              height: config.size * 1.3,
               animation: `petalDrift ${config.duration}s ease-out ${config.delay}s forwards`,
               opacity: 0,
             }}
           >
-            <svg width="100%" height="100%" viewBox="0 0 20 24" fill="none">
-              <path d="M10 0C10 0 14 4 14 10C14 16 10 24 10 24C10 24 6 16 6 10C6 4 10 0 10 0Z"
-                fill={`rgba(255,250,240,${config.opacity})`} />
-            </svg>
+            {config.isLeafA ? (
+              <svg width="100%" height="100%" viewBox="0 0 28 36" fill="none">
+                <path d="M14 0C14 0 22 6 24 14C26 22 20 34 14 36C8 34 2 22 4 14C6 6 14 0 14 0Z"
+                  fill={`rgba(139,100,50,${config.opacity})`} stroke={`rgba(92,74,50,${config.opacity * 0.7})`} strokeWidth="0.5"/>
+                <path d="M14 3L14 33" stroke={`rgba(92,74,50,${config.opacity * 0.8})`} strokeWidth="0.6" strokeLinecap="round"/>
+                <path d="M14 8L9 5" stroke={`rgba(92,74,50,${config.opacity * 0.5})`} strokeWidth="0.4" strokeLinecap="round"/>
+                <path d="M14 8L19 5" stroke={`rgba(92,74,50,${config.opacity * 0.5})`} strokeWidth="0.4" strokeLinecap="round"/>
+                <path d="M14 14L8 11" stroke={`rgba(92,74,50,${config.opacity * 0.5})`} strokeWidth="0.4" strokeLinecap="round"/>
+                <path d="M14 14L20 11" stroke={`rgba(92,74,50,${config.opacity * 0.5})`} strokeWidth="0.4" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg width="100%" height="100%" viewBox="0 0 26 34" fill="none">
+                <path d="M13 0C13 0 21 4 24 12C26 20 20 30 13 34C6 30 0 20 2 12C5 4 13 0 13 0Z"
+                  fill={`rgba(107,66,38,${config.opacity})`} stroke={`rgba(92,74,50,${config.opacity * 0.7})`} strokeWidth="0.5"/>
+                <path d="M13 3C13 3 12.5 17 13 31" stroke={`rgba(92,74,50,${config.opacity * 0.8})`} strokeWidth="0.6" strokeLinecap="round" fill="none"/>
+                <path d="M13 7L7 4" stroke={`rgba(92,74,50,${config.opacity * 0.5})`} strokeWidth="0.4" strokeLinecap="round"/>
+                <path d="M13 7L19 4" stroke={`rgba(92,74,50,${config.opacity * 0.5})`} strokeWidth="0.4" strokeLinecap="round"/>
+                <path d="M12.5 13L6 10" stroke={`rgba(92,74,50,${config.opacity * 0.5})`} strokeWidth="0.4" strokeLinecap="round"/>
+                <path d="M12.5 13L19 10" stroke={`rgba(92,74,50,${config.opacity * 0.5})`} strokeWidth="0.4" strokeLinecap="round"/>
+              </svg>
+            )}
           </div>
         ))}
       </div>
