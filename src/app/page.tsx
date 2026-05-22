@@ -2291,6 +2291,7 @@ export default function Home() {
       )}
 
       {!isLoading && isOpen && (
+      <>
         <SmoothScroll>
           <main className="relative" style={{ touchAction: 'manipulation' }}>
             <CursorFollower />
@@ -2312,13 +2313,18 @@ export default function Home() {
             <FooterSection />
           </main>
 
+          <ScrollToTop />
+        </SmoothScroll>
+
+        {/* Music player — rendered via portal to <body>, always visible on screen */}
+        {isOpen && (
           <MusicPlayerComponent
             isPlaying={isPlaying}
             onToggle={toggleMusic}
             audioRef={audioRef}
           />
-          <ScrollToTop />
-        </SmoothScroll>
+        )}
+      </>
       )}
     </>
   )
