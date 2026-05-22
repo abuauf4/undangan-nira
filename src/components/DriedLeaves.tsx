@@ -19,7 +19,7 @@ import { prefersReducedMotion } from '@/lib/animations'
  *  close, but not yet together.
  *
  *  Only at the closing section do they finally descend —
- *  falling gently to the same place, side by side.
+ *  falling gently to the same place at the BOTTOM, side by side.
  *  Because now, both are finally together.
  *
  *  Visual meaning:
@@ -33,16 +33,13 @@ interface Leaf {
   id: 'A' | 'B'
   x: number
   y: number
-  vx: number            // velocity X — smooth momentum
-  vy: number            // velocity Y — smooth momentum
+  vx: number
+  vy: number
   rotation: number
-  rotationVel: number   // rotation velocity — smooth
   scale: number
   opacity: number
   element: HTMLDivElement
-  // Identity
   swayDirection: number // A = +1 (right), B = -1 (left)
-  // Closing state
   isClosing: boolean
   closingProgress: number
   closingStartX: number
@@ -52,8 +49,7 @@ interface Leaf {
 }
 
 /**
- * Simple value noise — multiple sine waves at different frequencies
- * Creates organic, non-repeating motion that feels alive
+ * Organic noise — layered sine waves for natural motion
  */
 function organicNoise(t: number, seed: number): number {
   return (
@@ -69,7 +65,7 @@ export default function DriedLeaves() {
   const leavesRef = useRef<Leaf[]>([])
   const animFrameRef = useRef<number>(0)
   const closingTriggeredRef = useRef(false)
-  const scrollProgressRef = useRef(0) // 0 = top, 1 = scrolled through everything
+  const scrollProgressRef = useRef(0)
 
   const createLeafElement = (id: 'A' | 'B'): HTMLDivElement => {
     const el = document.createElement('div')
@@ -80,7 +76,7 @@ export default function DriedLeaves() {
     el.style.top = '0'
 
     if (id === 'A') {
-      // Leaf A — elongated, warm brown, slightly curled
+      // Leaf A — elongated, warm brown
       el.innerHTML = `
         <svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M14 0C14 0 22 6 24 14C26 22 20 34 14 36C8 34 2 22 4 14C6 6 14 0 14 0Z"
@@ -141,8 +137,7 @@ export default function DriedLeaves() {
       y: startY,
       vx: 0,
       vy: 0,
-      rotation: id === 'A' ? 12 : -18,
-      rotationVel: id === 'A' ? 0.08 : -0.06,
+      rotation: id === 'A' ? 8 : -10,
       scale: 0.85,
       opacity: 0,
       element: el,
@@ -200,12 +195,8 @@ export default function DriedLeaves() {
       }
 
       // ─── Scroll-based proximity ───
-      // As user scrolls deeper into the story, leaves drift closer together
-      // 0% scroll = far apart, 50% scroll = closer, 80%+ = quite close
       const scrollP = scrollProgressRef.current
-      // Proximity factor: 0 = original distance, 1 = very close
       const proximity = Math.min(1, Math.max(0, scrollP * 1.2 - 0.1))
-      // "Together zone" — center X that both leaves are pulled towards
       const togetherX = vw * 0.5
 
       leavesRef.current.forEach(leaf => {
@@ -216,33 +207,38 @@ export default function DriedLeaves() {
 
         if (leaf.isClosing) {
           // ═══════════════════════════════════════════
-          //  CLOSING: Both leaves descend to the same place
-          //  Because now, kedua mempelai sudah bersama
+          //  CLOSING: Both leaves descend to the BOTTOM
+          //  of the closing section, side by side
+          //  Kedua mempelai sudah bersama
           // ═══════════════════════════════════════════
-          leaf.closingProgress = Math.min(1, leaf.closingProgress + 0.0012)
+          leaf.closingProgress = Math.min(1, leaf.closingProgress + 0.001)
 
           const p = leaf.closingProgress
-          // Ease: gentle start, breathing middle, soft landing
+          // Smooth ease: slow start, steady drift, soft landing
           const ease = p < 0.3
-            ? p * p * 3.33           // slow start
+            ? p * p * 3.33
             : p < 0.7
-              ? 0.3 + (p - 0.3) * 1.5 * 0.7  // steady drift
-              : 1 - Math.pow(1 - p, 3)        // soft landing
+              ? 0.3 + (p - 0.3) * 1.5 * 0.7
+              : 1 - Math.pow(1 - p, 3)
 
-          // Both converge to the exact same point
-          const sideOffset = leaf.id === 'A' ? -10 : 10 // A left, B right — side by side
+          // Both converge to the center, at the BOTTOM of the closing section
+          const sideOffset = leaf.id === 'A' ? -12 : 12 // A left, B right — side by side
           const targetX = togetherX + sideOffset
-          const targetY = vh * 0.5
+          // Bottom of the closing section viewport
+          const closingRect = closingSection?.getBoundingClientRect()
+          const targetY = closingRect
+            ? closingRect.bottom - 80 // land near the bottom of the section
+            : vh * 0.85
 
           leaf.x = leaf.closingStartX + (targetX - leaf.closingStartX) * ease
           leaf.y = leaf.closingStartY + (targetY - leaf.closingStartY) * ease
 
-          // Rotation eases to a gentle resting angle
-          const restRotation = leaf.id === 'A' ? 5 : -8
+          // Rotation gently settles — just a slight tilt, no spinning
+          const restRotation = leaf.id === 'A' ? 5 : -6
           leaf.rotation = leaf.closingStartRotation + (restRotation - leaf.closingStartRotation) * ease
 
           // Scale gently grows — they're coming forward, towards the viewer
-          leaf.scale = leaf.closingStartScale + (1.15 - leaf.closingStartScale) * ease
+          leaf.scale = leaf.closingStartScale + (1.1 - leaf.closingStartScale) * ease
 
           // Opacity warms as they arrive together
           leaf.opacity = 0.6 + ease * 0.3
@@ -250,78 +246,74 @@ export default function DriedLeaves() {
         } else {
           // ═══════════════════════════════════════════
           //  DRIFTING: Two different journeys
-          //  Natural buoyancy, carefully designed imperfection
-          //  They never reach the bottom. The wind holds them.
+          //  Smooth left-right sway, no spinning
+          //  They never reach the bottom
           // ═══════════════════════════════════════════
 
-          // ─── Buoyancy system ───
-          // Leaves have a "resting Y" — an equilibrium they float around
-          // The deeper they go, the stronger the updraft
-          const restY = vh * 0.35 // their natural floating altitude
-          const buoyancy = (leaf.y - restY) * -0.003 // updraft when below rest
-          const gravity = 0.003 // gentle downward pull
+          // ─── Vertical: gentle floating, never reaching bottom ───
+          const restY = vh * 0.32 // natural floating altitude
+          const buoyancy = (leaf.y - restY) * -0.004 // updraft when below rest
+          const gravity = 0.002 // very gentle downward pull
 
-          // Vertical: gravity pulls down, buoyancy pushes up
+          // Organic vertical drift — slow breathing
           leaf.vy += gravity + buoyancy
-          // Organic vertical drift — breathing, like floating in warm air
-          leaf.vy += organicNoise(t * 0.3, leaf.id === 'A' ? 0 : 5) * 0.008
-          // Damping — slow, viscous air
-          leaf.vy *= 0.97
+          leaf.vy += organicNoise(t * 0.25, leaf.id === 'A' ? 0 : 5) * 0.005
+          leaf.vy *= 0.97 // viscous air damping
           leaf.y += leaf.vy
 
-          // Never reach the bottom — hard buoyancy floor
-          const maxFloatY = vh * 0.55
+          // Never reach the bottom
+          const maxFloatY = vh * 0.5
           if (leaf.y > maxFloatY) {
             leaf.y = maxFloatY
-            leaf.vy = Math.min(0, leaf.vy) // only allow upward
+            leaf.vy = Math.min(0, leaf.vy)
           }
-          // Never go above screen either
+          // Never go above screen
           if (leaf.y < -30) {
             leaf.y = -30
             leaf.vy = Math.max(0, leaf.vy)
           }
 
-          // ─── Horizontal drift with scroll proximity ───
+          // ─── Horizontal: smooth left-right sway ───
           // Base position — Leaf A left side, Leaf B right side
-          const baseX = leaf.id === 'A'
-            ? vw * 0.25  // A starts left
-            : vw * 0.75  // B starts right
+          const baseX = leaf.id === 'A' ? vw * 0.25 : vw * 0.75
 
           // Target X shifts closer together as scroll progresses
-          // Leaf A moves right, Leaf B moves left — towards center
           const soloX = baseX
-          const closeX = togetherX + (leaf.id === 'A' ? -40 : 40) // close but not touching
+          const closeX = togetherX + (leaf.id === 'A' ? -40 : 40)
           const targetBaseX = soloX + (closeX - soloX) * proximity * 0.6
 
-          // Organic horizontal sway — multiple frequencies for imperfection
-          const sway1 = organicNoise(t * 0.4, leaf.id === 'A' ? 1 : 6) * 45
-          const sway2 = organicNoise(t * 0.15, leaf.id === 'A' ? 2 : 7) * 25
-          const gust = organicNoise(t * 0.08, 3) * 20 * leaf.swayDirection
+          // Gentle sway — smooth sine waves, NO sudden direction changes
+          // Slow, long-period oscillation for dreamy feel
+          const sway1 = Math.sin(t * 0.3 + (leaf.id === 'A' ? 0 : 3.14)) * 50
+          const sway2 = Math.sin(t * 0.12 + (leaf.id === 'A' ? 1.5 : 4.6)) * 30
+          // Subtle drift bias: Leaf A tends right, Leaf B tends left
+          const driftBias = organicNoise(t * 0.06, leaf.id === 'A' ? 2 : 7) * 25 * leaf.swayDirection
 
-          const targetX = targetBaseX + sway1 + sway2 + gust
+          const targetX = targetBaseX + sway1 + sway2 + driftBias
 
-          // Smooth approach to target — like being carried by air currents
-          leaf.vx += (targetX - leaf.x) * 0.005
-          leaf.vx *= 0.95 // viscous air damping
+          // Smooth approach — viscous, like floating in thick warm air
+          leaf.vx += (targetX - leaf.x) * 0.004
+          leaf.vx *= 0.94
           leaf.x += leaf.vx
 
           // Keep within bounds
           leaf.x = Math.max(20, Math.min(vw - 40, leaf.x))
 
-          // ─── Rotation — gentle tumbling, influenced by movement ───
-          const moveRotation = leaf.vx * 3 // turning into the direction of drift
-          const breatheRotation = organicNoise(t * 0.5, leaf.id === 'A' ? 4 : 9) * 8
-          leaf.rotationVel += (moveRotation + breatheRotation - leaf.rotationVel) * 0.03
-          leaf.rotation += leaf.rotationVel
+          // ─── Rotation: subtle tilt only, based on horizontal movement ───
+          // Like a leaf tilting in the direction it's moving — NO spinning
+          const tiltFromMovement = leaf.vx * 2.5 // tilt into direction of drift
+          const tiltBreathe = Math.sin(t * 0.4 + (leaf.id === 'A' ? 0 : 2)) * 3 // gentle breathing
+          const targetRotation = tiltFromMovement + tiltBreathe + (leaf.id === 'A' ? 8 : -10) // slight base tilt
+          leaf.rotation += (targetRotation - leaf.rotation) * 0.02 // very smooth approach
 
-          // ─── Scale — forward drift, organic breathing ───
-          const forwardDrift = organicNoise(t * 0.25, leaf.id === 'A' ? 3 : 8)
-          const targetScale = 0.75 + forwardDrift * 0.35 + proximity * 0.1 // slightly bigger when closer
+          // ─── Scale — subtle breathing, organic ───
+          const forwardDrift = Math.sin(t * 0.2 + (leaf.id === 'A' ? 1 : 4))
+          const targetScale = 0.75 + forwardDrift * 0.2 + proximity * 0.1
           leaf.scale += (targetScale - leaf.scale) * 0.02
 
-          // ─── Opacity — clearer when closer to viewer (bigger scale) ───
-          const scaleNorm = (leaf.scale - 0.75) / 0.45
-          leaf.opacity = 0.4 + scaleNorm * 0.3 + proximity * 0.1
+          // ─── Opacity — clearer when closer to viewer ───
+          const scaleNorm = (leaf.scale - 0.75) / 0.35
+          leaf.opacity = 0.4 + scaleNorm * 0.25 + proximity * 0.1
         }
 
         // Apply transform
