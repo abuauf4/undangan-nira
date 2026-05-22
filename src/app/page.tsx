@@ -693,7 +693,7 @@ function DiaryIntroSection() {
           className="text-base sm:text-lg italic leading-relaxed min-h-[10em]"
           style={{ fontFamily: 'var(--font-serif)', color: 'var(--brown)', opacity: 0.85 }}
         >
-          Tidak ada yang kebetulan di dunia ini, semua sudah tersusun rapih oleh Sang Maha Kuasa, kita tidak bisa memilih kepada siapa kita akan jatuh cinta, awal kami bertemu pada tahun 2020. Tidak ada yang pernah menyangka bahwa pertemuan itu membawa kami pada suatu ikatan yang suci.
+          Tidak ada yang kebetulan di dunia ini, semua sudah tersusun rapih oleh Sang Maha Kuasa, kita tidak bisa memilih kepada siapa kita akan jatuh cinta, awal kami bertemu pada tahun 2020. Tidak ada yang pernah menyangka bahwa pertemuan itu membawa kami pada suatu ikatan yang suci. Setiap langkah yang kami ambil, setiap tawa dan air mata yang kami bagikan, seolah mengantarkan kami pada satu titik yang telah dituliskan sejak lamanya. Mungkin kami tidak selalu memahami jalan yang kami lalui, tapi kini kami yakin bahwa setiap detik telah menjadi bagian dari cerita ini.
         </p>
 
         {/* Bottom ink stroke */}
@@ -1325,6 +1325,7 @@ function EventSection() {
    ═══════════════════════════════════════════════════════════ */
 function GallerySection() {
   const sectionRef = useRef<HTMLDivElement>(null)
+  const bgTextRef = useRef<HTMLDivElement>(null)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [touchStart, setTouchStart] = useState<number | null>(null)
 
@@ -1376,6 +1377,42 @@ function GallerySection() {
     const ctx = gsap.context(() => {
       const section = sectionRef.current!
       fadeIn(section, { duration: 1.2, y: 20 })
+
+      // ─── Background handwriting silhouette ───
+      // Quran verse / hadith about love & marriage flowing as faint handwritten text
+      // Silhouette effect — very low opacity, large italic font, scrolls through
+      if (bgTextRef.current) {
+        const bgEl = bgTextRef.current
+        // Set initial: text starts below viewport, will scroll up through the section
+        gsap.set(bgEl, { y: '30%' })
+
+        // Animate the text flowing upward as user scrolls / auto-scroll
+        gsap.to(bgEl, {
+          y: '-80%',
+          ease: 'none',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 0.5,
+          },
+        })
+
+        // Fade in the silhouette when section enters
+        gsap.fromTo(bgEl,
+          { opacity: 0 },
+          {
+            opacity: 1,
+            duration: 1.5,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: section,
+              start: 'top 70%',
+              toggleActions: 'play none none none',
+            },
+          }
+        )
+      }
 
       // ─── Title & ornament entrance ───
       const titleEl = section.querySelector('.gallery-title')
@@ -1529,7 +1566,28 @@ function GallerySection() {
   }
 
   return (
-    <section ref={sectionRef} data-section="gallery" className="diary-paper-bg cinema-depth py-28 px-6" style={{ opacity: 0 }}>
+    <section ref={sectionRef} data-section="gallery" className="diary-paper-bg cinema-depth py-28 px-6 relative overflow-hidden" style={{ opacity: 0 }}>
+      {/* Background handwriting silhouette — Quran verse about love flowing behind photos */}
+      <div
+        ref={bgTextRef}
+        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+        style={{ zIndex: 0 }}
+      >
+        <p
+          className="whitespace-pre-line text-center leading-loose"
+          style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontStyle: 'italic',
+            fontSize: 'clamp(1.2rem, 3vw, 2.2rem)',
+            color: 'var(--gold)',
+            opacity: 0.07,
+            maxWidth: '90%',
+          }}
+        >
+          {'Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan hidup dari jenismu sendiri, supaya kamu merasa tenteram kepadanya, dan dijadikan-Nya di antaramu rasa kasih dan sayang. Sesungguhnya pada yang demikian itu benar-benar terdapat tanda-tanda bagi kaum yang berpikir.\n\n— QS. Ar-Rum: 21\n\nPernikahan adalah separuh agama, maka barangsiapa menikah maka ia telah menyempurnakan separuh agamanya, maka bertaqwalah kepada Allah pada separuh yang lainnya.\n\n— HR. Al-Baihaqi\n\nSebaik-baik di antara kalian adalah yang paling baik kepada istrinya.\n\n— HR. Tirmidzi'}
+        </p>
+      </div>
+
       <div className="max-w-4xl mx-auto text-center relative z-10">
         <h2 className="gallery-title text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold-dark)' }}>
           Momen Kami
