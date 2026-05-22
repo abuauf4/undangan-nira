@@ -1124,11 +1124,11 @@ function CountdownSection() {
   return (
     <section ref={sectionRef} data-section="countdown" className="batik-kawung cinema-depth py-28 px-6 text-center relative" style={{ opacity: 0, color: 'var(--cream)' }}>
       <div className="max-w-2xl mx-auto relative z-10">
-        <h2 className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold)' }}>
+        <h2 className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'var(--font-script)', color: '#E8D5A3' }}>
           Menghitung Hari
         </h2>
-        <div className="ornament-divider max-w-xs mx-auto mb-14">
-          <span className="text-[var(--gold-light)] text-lg">&#10047;</span>
+        <div className="ornament-divider ornament-divider-light max-w-xs mx-auto mb-14">
+          <span className="text-lg" style={{ color: '#E8D5A3' }}>&#10047;</span>
         </div>
 
         {/* Countdown numbers */}
@@ -1144,7 +1144,8 @@ function CountdownSection() {
                 className="countdown-number text-4xl sm:text-6xl"
                 style={{
                   fontFamily: 'var(--font-serif)',
-                  color: 'var(--gold-light)',
+                  color: '#F0DFA0',
+                  textShadow: '0 0 20px rgba(201,169,110,0.4), 0 0 40px rgba(201,169,110,0.15)',
                   animation: i === 0 ? 'breathe 4s ease-in-out infinite' : undefined,
                 }}
               >
@@ -1152,7 +1153,7 @@ function CountdownSection() {
               </div>
               <p
                 className="text-[10px] sm:text-xs tracking-[0.2em] uppercase mt-2"
-                style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)' }}
+                style={{ fontFamily: 'var(--font-body)', color: '#D4B87A' }}
               >
                 {item.label}
               </p>
@@ -1160,7 +1161,7 @@ function CountdownSection() {
           ))}
         </div>
 
-        <p className="text-sm italic" style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold)' }}>
+        <p className="text-sm italic" style={{ fontFamily: 'var(--font-serif)', color: '#D4B87A' }}>
           menuju hari bahagia kami
         </p>
       </div>

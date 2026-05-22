@@ -508,6 +508,13 @@ html {
   opacity: 0.4;
 }
 
+/* Light variant — for dark backgrounds like batik-kawung */
+.ornament-divider-light::before,
+.ornament-divider-light::after {
+  background: linear-gradient(90deg, transparent, #E8D5A3, transparent);
+  opacity: 0.6;
+}
+
 /* ========================================
    14. DIARY PAPER TEXTURES
    Warm aged paper, like opening an old journal
