@@ -205,7 +205,7 @@ export default function DigitalEnvelope() {
             Kab. Bogor
           </p>
           <p className="text-xs mt-2 italic" style={{ fontFamily: 'var(--font-body)', color: 'var(--brown-light)' }}>
-            a.n. Irwan Pratomo
+            a.n. Anira Tri Agustini
           </p>
         </div>
       </div>

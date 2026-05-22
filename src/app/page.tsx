@@ -25,7 +25,7 @@ const WEDDING = {
   groom: 'Irwan Pratomo',
   bride: 'Anira Tri Agustini',
   groomParents: 'Bpk. Sugeng Hartanto & Ibu Dahlianingsih',
-  brideParents: 'Bpk Andi Yosalfi & Ibu Budi Hastuti',
+  brideParents: 'Bpk. Andi Yosalfi & Ibu Budi Hastuti',
   akadDate: '2026-07-05T10:00:00+07:00',
   resepsiDate: '2026-07-05T11:00:00+07:00',
   resepsiEnd: '2026-07-05T17:00:00+07:00',
