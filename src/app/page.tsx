@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
+import { createPortal } from 'react-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import DriedLeaves from '@/components/DriedLeaves'
@@ -2403,9 +2404,9 @@ export default function Home() {
           />
         )}
 
-        {/* Control buttons — bottom left, small and minimal */}
-        {isOpen && (
-          <div className="fixed bottom-4 left-4 z-[9999] flex flex-col gap-2">
+        {/* Control buttons — bottom left, small and minimal, rendered via portal */}
+        {isOpen && typeof window !== 'undefined' && createPortal(
+          <div className="fixed bottom-4 left-4 flex flex-col gap-2" style={{ zIndex: 99998 }}>
             {/* Auto-scroll toggle */}
             <button
               onClick={toggleAutoScroll}
@@ -2414,21 +2415,25 @@ export default function Home() {
                 background: autoScrollEnabled ? 'rgba(250, 245, 230, 0.9)' : 'rgba(201, 169, 110, 0.9)',
                 color: autoScrollEnabled ? 'var(--gold-dark)' : '#fff',
                 backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
                 boxShadow: autoScrollEnabled ? '0 0 10px rgba(201, 169, 110, 0.2)' : '0 0 10px rgba(201, 169, 110, 0.4)',
+                position: 'fixed',
+                bottom: '1.5rem',
+                left: '1.5rem',
+                zIndex: 99998,
               }}
               title={autoScrollEnabled ? 'Matikan Auto-scroll' : 'Nyalakan Auto-scroll'}
             >
               {autoScrollEnabled ? (
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 13c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-2.21 1.79-4 4-4s4 1.79 4 4v8zm-7 0c0 1.66 1.34 3 3 3s3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v8z"/>
-                  <path d="M12 15c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2s2 .9 2 2v8c0 1.1-.9 2-2 2z" opacity="0"/>
                   <path d="M19 11h-2c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92z"/>
+                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
                 </svg>
               ) : (
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 11h-2c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92z" opacity="0"/>
                   <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" opacity="0"/>
-                  <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                  <line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
                 </svg>
               )}
             </button>
@@ -2441,7 +2446,12 @@ export default function Home() {
                 background: isPlaying ? 'rgba(250, 245, 230, 0.9)' : 'rgba(201, 169, 110, 0.9)',
                 color: isPlaying ? 'var(--gold-dark)' : '#fff',
                 backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
                 boxShadow: isPlaying ? '0 0 10px rgba(201, 169, 110, 0.2)' : '0 0 10px rgba(201, 169, 110, 0.4)',
+                position: 'fixed',
+                bottom: '4.5rem',
+                left: '1.5rem',
+                zIndex: 99998,
               }}
               title={isPlaying ? 'Pause Musik' : 'Putar Musik'}
             >
@@ -2455,7 +2465,8 @@ export default function Home() {
                 </svg>
               )}
             </button>
-          </div>
+          </div>,
+          document.body
         )}
       </>
       )}
