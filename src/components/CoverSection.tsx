@@ -10,7 +10,7 @@ interface CoverSectionProps {
 
 export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps) {
   const searchParams = useSearchParams()
-  const guestName = searchParams.get('to')
+  const [guestName, setGuestName] = useState(searchParams.get('to') || '')
   const [isOpening, setIsOpening] = useState(false)
   const [phase, setPhase] = useState<'idle' | 'leaning' | 'blooming' | 'breathing' | 'dissolving' | 'darkness'>('idle')
   const containerRef = useRef<HTMLDivElement>(null)
@@ -18,6 +18,19 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
   const contentRef = useRef<HTMLDivElement>(null)
   const petalContainerRef = useRef<HTMLDivElement>(null)
   const mouseRef = useRef({ x: 0, y: 0 })
+
+  // Resolve guest code to name
+  useEffect(() => {
+    const guestCode = searchParams.get('guest')
+    if (guestCode) {
+      fetch(`/api/guests/lookup?code=${guestCode}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.name) setGuestName(data.name)
+        })
+        .catch(() => {})
+    }
+  }, [searchParams])
 
   // Parallax on mouse move (desktop only)
   useEffect(() => {

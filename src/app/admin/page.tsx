@@ -26,7 +26,14 @@ interface RSVP {
   createdAt: string
 }
 
-type Tab = 'konten' | 'foto' | 'kehadiran' | 'ucapan'
+interface Guest {
+  id: string
+  name: string
+  code: string
+  createdAt: string
+}
+
+type Tab = 'konten' | 'foto' | 'tamu' | 'kehadiran' | 'ucapan'
 
 // Config fields grouped by section
 const CONFIG_FIELDS: { key: string; label: string; type: 'text' | 'textarea' | 'json'; group: string }[] = [
@@ -68,6 +75,9 @@ export default function AdminPage() {
   const [editedConfig, setEditedConfig] = useState<WeddingConfig>({})
   const [wishes, setWishes] = useState<Wish[]>([])
   const [rsvps, setRsvps] = useState<RSVP[]>([])
+  const [guests, setGuests] = useState<Guest[]>([])
+  const [newGuestName, setNewGuestName] = useState('')
+  const [addingGuest, setAddingGuest] = useState(false)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
 
@@ -84,6 +94,7 @@ export default function AdminPage() {
     fetchConfig()
     fetchWishes()
     fetchRsvps()
+    fetchGuests()
   }, [authenticated])
 
   const showToast = (msg: string) => {
@@ -126,6 +137,16 @@ export default function AdminPage() {
       const res = await fetch('/api/rsvp')
       const data = await res.json()
       setRsvps(data)
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
+  const fetchGuests = useCallback(async () => {
+    try {
+      const res = await fetch('/api/guests')
+      const data = await res.json()
+      setGuests(data)
     } catch (e) {
       console.error(e)
     }
@@ -185,6 +206,62 @@ export default function AdminPage() {
     } catch {
       showToast('Gagal menghapus')
     }
+  }
+
+  const addGuest = async () => {
+    if (!newGuestName.trim()) return
+    setAddingGuest(true)
+    try {
+      const res = await fetch('/api/guests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newGuestName.trim() }),
+      })
+      if (res.ok) {
+        const guest = await res.json()
+        setGuests([guest, ...guests])
+        setNewGuestName('')
+        showToast('Tamu ditambahkan!')
+      } else {
+        showToast('Gagal menambahkan tamu')
+      }
+    } catch {
+      showToast('Gagal menambahkan tamu')
+    }
+    setAddingGuest(false)
+  }
+
+  const deleteGuest = async (id: string) => {
+    if (!confirm('Hapus tamu ini?')) return
+    try {
+      await fetch(`/api/guests/${id}`, { method: 'DELETE' })
+      setGuests(guests.filter(g => g.id !== id))
+      showToast('Tamu dihapus')
+    } catch {
+      showToast('Gagal menghapus')
+    }
+  }
+
+  const getGuestLink = (code: string) => {
+    const base = window.location.origin
+    return `${base}?guest=${code}`
+  }
+
+  const copyGuestLink = async (code: string) => {
+    const link = getGuestLink(code)
+    try {
+      await navigator.clipboard.writeText(link)
+      showToast('Link disalin!')
+    } catch {
+      showToast('Gagal menyalin link')
+    }
+  }
+
+  const shareWhatsApp = (guest: Guest) => {
+    const link = getGuestLink(guest.code)
+    const message = `Assalamu'alaikum ${guest.name} 🤍\n\nKami mengundang Anda dengan penuh sukacita untuk hadir dalam acara pernikahan kami.\n\nIrwan & Anira\n05 Juli 2026\n\n📎 Buka undangan Anda di:\n${link}\n\nMerupakan kebahagiaan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.\n\nTerima kasih 🙏✨`
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
+    window.open(waUrl, '_blank')
   }
 
   // Login screen
@@ -262,6 +339,7 @@ export default function AdminPage() {
           {([
             { id: 'konten' as Tab, label: 'Konten' },
             { id: 'foto' as Tab, label: 'Foto' },
+            { id: 'tamu' as Tab, label: `Tamu${guests.length > 0 ? ` (${guests.length})` : ''}` },
             { id: 'kehadiran' as Tab, label: 'Kehadiran' },
             { id: 'ucapan' as Tab, label: `Ucapan${pendingWishes.length > 0 ? ` (${pendingWishes.length})` : ''}` },
           ]).map(tab => (
@@ -384,6 +462,95 @@ export default function AdminPage() {
             >
               {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
+          </div>
+        )}
+
+        {/* TAB: Tamu */}
+        {activeTab === 'tamu' && (
+          <div className="space-y-4">
+            {/* Add guest input */}
+            <div className="rounded-xl border p-4" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
+              <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--gold)' }}>Tambah Tamu</h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newGuestName}
+                  onChange={(e) => setNewGuestName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addGuest()}
+                  placeholder="Nama tamu (misal: Budi Santoso)"
+                  className="flex-1 px-3 py-2.5 rounded-lg border text-sm outline-none"
+                  style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
+                />
+                <button
+                  onClick={addGuest}
+                  disabled={addingGuest || !newGuestName.trim()}
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-all hover:opacity-90 disabled:opacity-50 whitespace-nowrap"
+                  style={{ background: 'var(--gold)', color: '#1a1410' }}
+                >
+                  {addingGuest ? '...' : 'Tambah'}
+                </button>
+              </div>
+            </div>
+
+            {/* Guest list */}
+            <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'rgba(201,169,110,0.2)' }}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{ background: 'rgba(201,169,110,0.1)' }}>
+                      <th className="text-left px-4 py-3 font-medium" style={{ color: 'var(--gold)' }}>Nama</th>
+                      <th className="text-left px-4 py-3 font-medium" style={{ color: 'var(--gold)' }}>Kode</th>
+                      <th className="text-left px-4 py-3 font-medium" style={{ color: 'var(--gold)' }}>Link</th>
+                      <th className="text-left px-4 py-3 font-medium" style={{ color: 'var(--gold)' }}>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {guests.map(guest => (
+                      <tr key={guest.id} className="border-t" style={{ borderColor: 'rgba(201,169,110,0.1)' }}>
+                        <td className="px-4 py-3 font-medium">{guest.name}</td>
+                        <td className="px-4 py-3">
+                          <code className="px-2 py-1 rounded text-xs" style={{ background: 'rgba(201,169,110,0.15)', color: 'var(--gold-light)' }}>{guest.code}</code>
+                        </td>
+                        <td className="px-4 py-3 max-w-[200px] truncate" style={{ opacity: 0.7, fontSize: '11px' }}>
+                          {getGuestLink(guest.code)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => copyGuestLink(guest.code)}
+                              className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80"
+                              style={{ background: 'rgba(201,169,110,0.2)', color: 'var(--gold-light)' }}
+                              title="Salin link"
+                            >
+                              Salin
+                            </button>
+                            <button
+                              onClick={() => shareWhatsApp(guest)}
+                              className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80"
+                              style={{ background: '#25D366', color: 'white' }}
+                              title="Bagikan via WhatsApp"
+                            >
+                              WhatsApp
+                            </button>
+                            <button
+                              onClick={() => deleteGuest(guest.id)}
+                              className="px-2 py-1.5 rounded text-xs cursor-pointer hover:opacity-80"
+                              style={{ background: 'rgba(248,113,113,0.2)', color: '#f87171' }}
+                              title="Hapus"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {guests.length === 0 && (
+                      <tr><td colSpan={4} className="px-4 py-8 text-center" style={{ opacity: 0.4 }}>Belum ada tamu. Tambahkan nama tamu di atas.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 

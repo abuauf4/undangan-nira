@@ -34,3 +34,10 @@ model RSVP {
   message   String   @default("")
   createdAt DateTime @default(now())
 }
+
+model Guest {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  createdAt DateTime @default(now())
+}
