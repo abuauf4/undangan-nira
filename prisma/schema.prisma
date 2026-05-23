@@ -38,6 +38,8 @@ model RSVP {
 model Guest {
   id        String   @id @default(cuid())
   name      String
+  prefix    String   @default("")
+  suffix    String   @default("")
   code      String   @unique
   createdAt DateTime @default(now())
 }

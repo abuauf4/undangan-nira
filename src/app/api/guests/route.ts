@@ -18,7 +18,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name } = body
+    const { name, prefix, suffix } = body
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json({ error: 'Nama tamu harus diisi' }, { status: 400 })
@@ -27,6 +27,12 @@ export async function POST(request: NextRequest) {
     if (name.trim().length > 100) {
       return NextResponse.json({ error: 'Nama terlalu panjang' }, { status: 400 })
     }
+
+    const validPrefixes = ['', 'Kak', 'Bang', 'Bapak', 'Ibu', 'Mas', 'Mba', 'Dik', 'Pak', 'Bu', 'Tante', 'Om', 'Saudara', 'Saudari']
+    const validSuffixes = ['', 'Dan Keluarga', 'Dan Istri', 'Dan Suami', 'Dan Partner']
+
+    const safePrefix = validPrefixes.includes(prefix) ? prefix : ''
+    const safeSuffix = validSuffixes.includes(suffix) ? suffix : ''
 
     // Generate a unique 8-char code (alphanumeric, uppercase)
     const generateCode = () => {
@@ -46,6 +52,8 @@ export async function POST(request: NextRequest) {
         guest = await db.guest.create({
           data: {
             name: name.trim(),
+            prefix: safePrefix,
+            suffix: safeSuffix,
             code,
           },
         })

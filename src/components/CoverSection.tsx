@@ -11,6 +11,8 @@ interface CoverSectionProps {
 export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps) {
   const searchParams = useSearchParams()
   const [guestName, setGuestName] = useState(searchParams.get('to') || '')
+  const [guestPrefix, setGuestPrefix] = useState('')
+  const [guestSuffix, setGuestSuffix] = useState('')
   const [isOpening, setIsOpening] = useState(false)
   const [phase, setPhase] = useState<'idle' | 'leaning' | 'blooming' | 'breathing' | 'dissolving' | 'darkness'>('idle')
   const containerRef = useRef<HTMLDivElement>(null)
@@ -26,7 +28,11 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
       fetch(`/api/guests/lookup?code=${guestCode}`)
         .then(r => r.ok ? r.json() : null)
         .then(data => {
-          if (data?.name) setGuestName(data.name)
+          if (data?.name) {
+            setGuestName(data.name)
+            if (data.prefix) setGuestPrefix(data.prefix)
+            if (data.suffix) setGuestSuffix(data.suffix)
+          }
         })
         .catch(() => {})
     }
@@ -363,7 +369,7 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
             className="text-base sm:text-lg italic"
             style={{ fontFamily: 'var(--font-serif)', color: 'var(--cream)', opacity: 0.85 }}
           >
-            {guestName || 'Tamu Undangan'}
+            {guestPrefix && <span>{guestPrefix} </span>}{guestName || 'Tamu Undangan'}{guestSuffix && <span> {guestSuffix}</span>}
           </p>
         </div>
 

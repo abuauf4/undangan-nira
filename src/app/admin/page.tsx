@@ -29,6 +29,8 @@ interface RSVP {
 interface Guest {
   id: string
   name: string
+  prefix: string
+  suffix: string
   code: string
   createdAt: string
 }
@@ -77,6 +79,8 @@ export default function AdminPage() {
   const [rsvps, setRsvps] = useState<RSVP[]>([])
   const [guests, setGuests] = useState<Guest[]>([])
   const [newGuestName, setNewGuestName] = useState('')
+  const [newGuestPrefix, setNewGuestPrefix] = useState('')
+  const [newGuestSuffix, setNewGuestSuffix] = useState('')
   const [addingGuest, setAddingGuest] = useState(false)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
@@ -215,12 +219,14 @@ export default function AdminPage() {
       const res = await fetch('/api/guests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newGuestName.trim() }),
+        body: JSON.stringify({ name: newGuestName.trim(), prefix: newGuestPrefix, suffix: newGuestSuffix }),
       })
       if (res.ok) {
         const guest = await res.json()
         setGuests([guest, ...guests])
         setNewGuestName('')
+        setNewGuestPrefix('')
+        setNewGuestSuffix('')
         showToast('Tamu ditambahkan!')
       } else {
         showToast('Gagal menambahkan tamu')
@@ -257,9 +263,18 @@ export default function AdminPage() {
     }
   }
 
+  const getGuestDisplayName = (guest: Guest) => {
+    const parts = []
+    if (guest.prefix) parts.push(guest.prefix)
+    parts.push(guest.name)
+    if (guest.suffix) parts.push(guest.suffix)
+    return parts.join(' ')
+  }
+
   const shareWhatsApp = (guest: Guest) => {
     const link = getGuestLink(guest.code)
-    const message = `Assalamu'alaikum ${guest.name} 🤍\n\nKami mengundang Anda dengan penuh sukacita untuk hadir dalam acara pernikahan kami.\n\nIrwan & Anira\n05 Juli 2026\n\n📎 Buka undangan Anda di:\n${link}\n\nMerupakan kebahagiaan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.\n\nTerima kasih 🙏✨`
+    const displayName = getGuestDisplayName(guest)
+    const message = `Assalamu'alaikum ${displayName} 🤍\n\nKami mengundang Anda dengan penuh sukacita untuk hadir dalam acara pernikahan kami.\n\nIrwan & Anira\n05 Juli 2026\n\n📎 Buka undangan Anda di:\n${link}\n\nMerupakan kebahagiaan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.\n\nTerima kasih 🙏✨`
     const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
     window.open(waUrl, '_blank')
   }
@@ -471,23 +486,69 @@ export default function AdminPage() {
             {/* Add guest input */}
             <div className="rounded-xl border p-4" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
               <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--gold)' }}>Tambah Tamu</h3>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newGuestName}
-                  onChange={(e) => setNewGuestName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && addGuest()}
-                  placeholder="Nama tamu (misal: Budi Santoso)"
-                  className="flex-1 px-3 py-2.5 rounded-lg border text-sm outline-none"
-                  style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
-                />
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  {/* Prefix dropdown */}
+                  <select
+                    value={newGuestPrefix}
+                    onChange={(e) => setNewGuestPrefix(e.target.value)}
+                    className="px-3 py-2.5 rounded-lg border text-sm outline-none cursor-pointer"
+                    style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)', minWidth: '100px' }}
+                  >
+                    <option value="" style={{ background: '#1a1410' }}>Tanpa</option>
+                    <option value="Kak" style={{ background: '#1a1410' }}>Kak</option>
+                    <option value="Bang" style={{ background: '#1a1410' }}>Bang</option>
+                    <option value="Mas" style={{ background: '#1a1410' }}>Mas</option>
+                    <option value="Mba" style={{ background: '#1a1410' }}>Mba</option>
+                    <option value="Dik" style={{ background: '#1a1410' }}>Dik</option>
+                    <option value="Bapak" style={{ background: '#1a1410' }}>Bapak</option>
+                    <option value="Ibu" style={{ background: '#1a1410' }}>Ibu</option>
+                    <option value="Pak" style={{ background: '#1a1410' }}>Pak</option>
+                    <option value="Bu" style={{ background: '#1a1410' }}>Bu</option>
+                    <option value="Tante" style={{ background: '#1a1410' }}>Tante</option>
+                    <option value="Om" style={{ background: '#1a1410' }}>Om</option>
+                    <option value="Saudara" style={{ background: '#1a1410' }}>Saudara</option>
+                    <option value="Saudari" style={{ background: '#1a1410' }}>Saudari</option>
+                  </select>
+
+                  {/* Name input */}
+                  <input
+                    type="text"
+                    value={newGuestName}
+                    onChange={(e) => setNewGuestName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addGuest()}
+                    placeholder="Nama tamu (misal: Budi Santoso)"
+                    className="flex-1 px-3 py-2.5 rounded-lg border text-sm outline-none"
+                    style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
+                  />
+
+                  {/* Suffix dropdown */}
+                  <select
+                    value={newGuestSuffix}
+                    onChange={(e) => setNewGuestSuffix(e.target.value)}
+                    className="px-3 py-2.5 rounded-lg border text-sm outline-none cursor-pointer"
+                    style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)', minWidth: '140px' }}
+                  >
+                    <option value="" style={{ background: '#1a1410' }}>Tanpa</option>
+                    <option value="Dan Keluarga" style={{ background: '#1a1410' }}>Dan Keluarga</option>
+                    <option value="Dan Istri" style={{ background: '#1a1410' }}>Dan Istri</option>
+                    <option value="Dan Suami" style={{ background: '#1a1410' }}>Dan Suami</option>
+                    <option value="Dan Partner" style={{ background: '#1a1410' }}>Dan Partner</option>
+                  </select>
+                </div>
+
+                {/* Preview */}
+                <div className="text-xs px-1" style={{ color: 'var(--gold-light)', opacity: 0.6 }}>
+                  Preview: {newGuestPrefix && <span>{newGuestPrefix} </span>}{newGuestName || 'Nama Tamu'}{newGuestSuffix && <span> {newGuestSuffix}</span>}
+                </div>
+
                 <button
                   onClick={addGuest}
                   disabled={addingGuest || !newGuestName.trim()}
-                  className="px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-all hover:opacity-90 disabled:opacity-50 whitespace-nowrap"
+                  className="w-full px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-all hover:opacity-90 disabled:opacity-50"
                   style={{ background: 'var(--gold)', color: '#1a1410' }}
                 >
-                  {addingGuest ? '...' : 'Tambah'}
+                  {addingGuest ? 'Menambahkan...' : 'Tambah Tamu'}
                 </button>
               </div>
             </div>
@@ -507,7 +568,11 @@ export default function AdminPage() {
                   <tbody>
                     {guests.map(guest => (
                       <tr key={guest.id} className="border-t" style={{ borderColor: 'rgba(201,169,110,0.1)' }}>
-                        <td className="px-4 py-3 font-medium">{guest.name}</td>
+                        <td className="px-4 py-3 font-medium">
+                          {guest.prefix && <span style={{ color: 'var(--gold-light)', opacity: 0.7 }}>{guest.prefix} </span>}
+                          {guest.name}
+                          {guest.suffix && <span style={{ color: 'var(--gold-light)', opacity: 0.7 }}> {guest.suffix}</span>}
+                        </td>
                         <td className="px-4 py-3">
                           <code className="px-2 py-1 rounded text-xs" style={{ background: 'rgba(201,169,110,0.15)', color: 'var(--gold-light)' }}>{guest.code}</code>
                         </td>
