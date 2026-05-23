@@ -14,6 +14,7 @@ import RSVPSection from '@/components/RSVPSection'
 import DigitalEnvelope from '@/components/DigitalEnvelope'
 import ScrollToTop from '@/components/ScrollToTop'
 import { fadeIn, slideIn, scaleIn, initCursorFollower, prefersReducedMotion } from '@/lib/animations'
+import { useWeddingConfig, type WeddingData } from '@/hooks/useWeddingConfig'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
@@ -21,46 +22,15 @@ if (typeof window !== 'undefined') {
 
 /* ═══════════════════════════════════════════════════════════
    WEDDING DATA
+   Falls back to hardcoded defaults, overridden by DB config at runtime.
+   Section components read from getWeddingData() which returns the latest DB values.
    ═══════════════════════════════════════════════════════════ */
-const WEDDING = {
-  groom: 'Irwan Pratomo',
-  bride: 'Anira Tri Agustini',
-  groomParents: 'Bpk. Sugeng Hartanto & Ibu Dahlianingsih',
-  brideParents: 'Bpk. Andi Yosalfi & Ibu Budi Hastuti',
-  akadDate: '2026-07-05T10:00:00+07:00',
-  resepsiDate: '2026-07-05T11:00:00+07:00',
-  resepsiEnd: '2026-07-05T17:00:00+07:00',
-  venue: 'Rumah Mempelai Wanita',
-  address: 'Villa Mutiara Bogor 2 Blok C2 No.36, Kel. Waringin Jaya, Kec. Bojonggede, Kab. Bogor',
-  lamaranDate: '31 Agustus 2025',
-  timeline: [
-    {
-      year: '2022',
-      title: 'Mulai Dekat',
-      description:
-        'Seiring berjalan waktu kami semakin dekat. Latar belakang yang berbeda membuat kami saling melengkapi dan banyak menemukan hal baru. Satu dua langkah menuntun kami hingga ke perjalanan selanjutnya.',
-    },
-    {
-      year: '2025',
-      title: 'Lamaran',
-      description:
-        'Kehendak-Nya menuntun kami pada pertemuan yang tak pernah disangka hingga akhirnya membawa kami pada sebuah ikatan suci yang dicintai-Nya, kami melangsungkan acara lamaran pada 31 Agustus 2025.',
-    },
-    {
-      year: '2026',
-      title: 'Menikah',
-      description:
-        'Percayalah, bukan karena bertemu lalu berjodoh, tapi karena berjodohlah kami dipertemukan. Atas izin Allah kami memutuskan untuk mengikrarkan janji suci pernikahan pada 05 Juli 2026.',
-    },
-  ],
-  galleryImages: [
-    '/images/gallery-1.jpg', '/images/gallery-2.jpg', '/images/gallery-3.jpg',
-    '/images/gallery-4.jpg', '/images/gallery-5.jpg',
-  ],
-  galleryCaptions: [
-    'Pertama kali', 'Bersama', 'Kenangan', 'Tawa', 'Bahagia',
-  ],
-}
+import { getDefaultData, buildWeddingData, type WeddingData } from '@/hooks/useWeddingConfig'
+
+// Module-level reactive state — updated by Home() from API
+let _weddingData: WeddingData = getDefaultData()
+export function getWeddingData() { return _weddingData }
+export function setWeddingData(data: WeddingData) { _weddingData = data }
 
 /* ═══════════════════════════════════════════════════════════
    AUTO-SCROLL NOTE:
@@ -512,17 +482,17 @@ function CoupleSection() {
           {/* Groom */}
           <div ref={groomRef} className="text-center" style={{ opacity: 0 }}>
             <div className="couple-photo-frame w-36 h-36 sm:w-44 sm:h-44 rounded-full overflow-hidden mx-auto mb-6 border-2 border-[var(--gold)] shadow-lg">
-              <img src="/images/groom.jpg" alt={WEDDING.groom} className="w-full h-full object-cover" />
+              <img src="/images/groom.jpg" alt={getWeddingData().groom} className="w-full h-full object-cover" />
             </div>
             <h3 ref={groomNameRef} className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold-light)', opacity: 0 }}>
-              {WEDDING.groom}
+              {getWeddingData().groom}
             </h3>
             <div className="ornament-divider max-w-[120px] mx-auto mb-3">
               <span className="text-[var(--gold)] text-xs">&#10047;</span>
             </div>
             <p ref={groomParentsRef} className="text-sm italic" style={{ fontFamily: 'var(--font-serif)', color: 'var(--cream)', opacity: 0 }}>
               Putra dari<br />
-              <span className="not-italic font-medium" style={{ color: 'var(--cream)' }}>{WEDDING.groomParents}</span>
+              <span className="not-italic font-medium" style={{ color: 'var(--cream)' }}>{getWeddingData().groomParents}</span>
             </p>
           </div>
 
@@ -538,17 +508,17 @@ function CoupleSection() {
           {/* Bride */}
           <div ref={brideRef} className="text-center" style={{ opacity: 0 }}>
             <div className="couple-photo-frame w-36 h-36 sm:w-44 sm:h-44 rounded-full overflow-hidden mx-auto mb-6 border-2 border-[var(--gold)] shadow-lg">
-              <img src="/images/bride.jpg" alt={WEDDING.bride} className="w-full h-full object-cover" />
+              <img src="/images/bride.jpg" alt={getWeddingData().bride} className="w-full h-full object-cover" />
             </div>
             <h3 ref={brideNameRef} className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold-light)', opacity: 0 }}>
-              {WEDDING.bride}
+              {getWeddingData().bride}
             </h3>
             <div className="ornament-divider max-w-[120px] mx-auto mb-3">
               <span className="text-[var(--gold)] text-xs">&#10047;</span>
             </div>
             <p ref={brideParentsRef} className="text-sm italic" style={{ fontFamily: 'var(--font-serif)', color: 'var(--cream)', opacity: 0 }}>
               Putri dari<br />
-              <span className="not-italic font-medium" style={{ color: 'var(--cream)' }}>{WEDDING.brideParents}</span>
+              <span className="not-italic font-medium" style={{ color: 'var(--cream)' }}>{getWeddingData().brideParents}</span>
             </p>
           </div>
         </div>
@@ -841,7 +811,7 @@ function DiaryStorySection() {
     // Set initial states
     if (progressBar) gsap.set(progressBar, { scaleX: 0, transformOrigin: 'left center' })
 
-    const totalItems = WEDDING.timeline.length
+    const totalItems = getWeddingData().timeline.length
 
     // ─── Calculate total handwriting duration for a text ───
     // Used to predict when handwriting finishes so we can schedule transitions
@@ -864,7 +834,7 @@ function DiaryStorySection() {
     // ─── Show story item with handwriting reveal ───
     // Returns the total duration from start until description handwriting completes
     const showStoryItem = (index: number): number => {
-      const item = WEDDING.timeline[index]
+      const item = getWeddingData().timeline[index]
       if (!item) return 0
 
       // Update year badge
@@ -1083,7 +1053,7 @@ function DiaryStorySection() {
               className="text-sm tracking-wider shrink-0"
               style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', opacity: 0 }}
             >
-              {WEDDING.timeline[0]?.year}
+              {getWeddingData().timeline[0]?.year}
             </div>
             <div
               ref={titleRef}
@@ -1113,7 +1083,7 @@ function DiaryStorySection() {
    ═══════════════════════════════════════════════════════════ */
 function CountdownSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
-  const { days, hours, minutes, seconds } = useCountdown(WEDDING.akadDate)
+  const { days, hours, minutes, seconds } = useCountdown(getWeddingData().akadDate)
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -1284,10 +1254,10 @@ function EventSection() {
         {/* Venue & Address */}
         <div className="mt-10">
           <p className="text-base font-medium mb-1" style={{ fontFamily: 'var(--font-serif)', color: 'var(--brown)' }}>
-            {WEDDING.venue}
+            {getWeddingData().venue}
           </p>
           <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ fontFamily: 'var(--font-serif)', color: 'var(--brown-light)' }}>
-            {WEDDING.address}
+            {getWeddingData().address}
           </p>
         </div>
 
@@ -1335,13 +1305,13 @@ function GallerySection() {
 
   // Organic rotations — slightly different each time, like scattered photos on a table
   const rotations = useRef(
-    WEDDING.galleryImages.map(() => Math.round((Math.random() - 0.5) * 12))
+    getWeddingData().galleryImages.map(() => Math.round((Math.random() - 0.5) * 12))
   )
 
   // Organic depth offsets — memories overlap and layer like a dream collage
   // Featured photos are closer (bigger scale), background memories are further
   const depthOffsets = useRef(
-    WEDDING.galleryImages.map((_, i) => {
+    getWeddingData().galleryImages.map((_, i) => {
       // Featured memories (every 4th) — closer, bigger, more vivid
       const isFeatured = i % 4 === 0
       return {
@@ -1356,7 +1326,7 @@ function GallerySection() {
 
   // Varied sizes — memories are not all the same size, some are closer, some further
   const photoSizes = useRef(
-    WEDDING.galleryImages.map((_, i) => {
+    getWeddingData().galleryImages.map((_, i) => {
       if (i === 0) return 300 // First memory — biggest, most vivid
       if (i % 4 === 0) return 260 // Featured memories — prominent
       if (i % 3 === 0) return 220 // Medium memories
@@ -1368,7 +1338,7 @@ function GallerySection() {
   // Organic vertical offsets — some memories are slightly higher or lower
   // Like photos scattered on a table, not perfectly aligned
   const verticalOffsets = useRef(
-    WEDDING.galleryImages.map((_, i) => {
+    getWeddingData().galleryImages.map((_, i) => {
       if (i === 0) return 0 // First memory: center anchor
       return (Math.random() - 0.5) * 30
     })
@@ -1524,10 +1494,10 @@ function GallerySection() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setLightboxIndex(null)
       if (e.key === 'ArrowLeft') {
-        setLightboxIndex((prev) => prev !== null ? (prev - 1 + WEDDING.galleryImages.length) % WEDDING.galleryImages.length : null)
+        setLightboxIndex((prev) => prev !== null ? (prev - 1 + getWeddingData().galleryImages.length) % getWeddingData().galleryImages.length : null)
       }
       if (e.key === 'ArrowRight') {
-        setLightboxIndex((prev) => prev !== null ? (prev + 1) % WEDDING.galleryImages.length : null)
+        setLightboxIndex((prev) => prev !== null ? (prev + 1) % getWeddingData().galleryImages.length : null)
       }
     }
 
@@ -1545,9 +1515,9 @@ function GallerySection() {
     const diff = e.changedTouches[0].clientX - touchStart
     if (Math.abs(diff) > 50) {
       if (diff > 0 && lightboxIndex !== null) {
-        setLightboxIndex((lightboxIndex - 1 + WEDDING.galleryImages.length) % WEDDING.galleryImages.length)
+        setLightboxIndex((lightboxIndex - 1 + getWeddingData().galleryImages.length) % getWeddingData().galleryImages.length)
       } else if (diff < 0 && lightboxIndex !== null) {
-        setLightboxIndex((lightboxIndex + 1) % WEDDING.galleryImages.length)
+        setLightboxIndex((lightboxIndex + 1) % getWeddingData().galleryImages.length)
       }
     }
     setTouchStart(null)
@@ -1557,12 +1527,12 @@ function GallerySection() {
   const closeLightbox = () => setLightboxIndex(null)
   const prevImage = () => {
     if (lightboxIndex !== null) {
-      setLightboxIndex((lightboxIndex - 1 + WEDDING.galleryImages.length) % WEDDING.galleryImages.length)
+      setLightboxIndex((lightboxIndex - 1 + getWeddingData().galleryImages.length) % getWeddingData().galleryImages.length)
     }
   }
   const nextImage = () => {
     if (lightboxIndex !== null) {
-      setLightboxIndex((lightboxIndex + 1) % WEDDING.galleryImages.length)
+      setLightboxIndex((lightboxIndex + 1) % getWeddingData().galleryImages.length)
     }
   }
 
@@ -1617,7 +1587,7 @@ function GallerySection() {
 
         {/* Memories returning one by one — like photos surfacing from a dream */}
         <div className="gallery-memories">
-          {WEDDING.galleryImages.map((img, index) => {
+          {getWeddingData().galleryImages.map((img, index) => {
             const depth = depthOffsets.current[index]
             const isFeatured = index % 4 === 0
             const verticalOffset = verticalOffsets.current[index] || 0
@@ -1643,13 +1613,13 @@ function GallerySection() {
               onClick={() => openLightbox(index)}
               role="button"
               tabIndex={0}
-              aria-label={`Lihat foto ${WEDDING.galleryCaptions[index]}`}
+              aria-label={`Lihat foto ${getWeddingData().galleryCaptions[index]}`}
               onKeyDown={(e) => { if (e.key === 'Enter') openLightbox(index) }}
             >
               <div className="aspect-[4/5] overflow-hidden bg-[var(--cream-dark)]">
                 <img
                   src={img}
-                  alt={WEDDING.galleryCaptions[index]}
+                  alt={getWeddingData().galleryCaptions[index]}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
@@ -1658,7 +1628,7 @@ function GallerySection() {
                 className="text-center text-xs sm:text-sm italic mt-1"
                 style={{ fontFamily: 'var(--font-serif)', color: 'var(--brown-light)' }}
               >
-                {WEDDING.galleryCaptions[index]}
+                {getWeddingData().galleryCaptions[index]}
               </p>
             </div>
             )
@@ -1716,15 +1686,15 @@ function GallerySection() {
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={WEDDING.galleryImages[lightboxIndex]}
-              alt={WEDDING.galleryCaptions[lightboxIndex]}
+              src={getWeddingData().galleryImages[lightboxIndex]}
+              alt={getWeddingData().galleryCaptions[lightboxIndex]}
               className="max-w-full max-h-[80vh] object-contain mx-auto"
             />
             <p
               className="text-center text-sm italic mt-4"
               style={{ fontFamily: 'var(--font-serif)', color: 'rgba(255,255,255,0.6)' }}
             >
-              {WEDDING.galleryCaptions[lightboxIndex]}
+              {getWeddingData().galleryCaptions[lightboxIndex]}
             </p>
           </div>
         </div>
@@ -2052,30 +2022,11 @@ export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null)
   const userScrollingRef = useRef(false)
 
-  // Dynamic wedding data — fetched from DB, fallback to hardcoded WEDDING
-  const [weddingData, setWeddingData] = useState(WEDDING)
+  // Dynamic wedding data — fetched from DB, fallback to defaults
+  const { data } = useWeddingConfig()
 
-  useEffect(() => {
-    fetch('/api/config')
-      .then(r => r.json())
-      .then(data => {
-        if (data && Object.keys(data).length > 0) {
-          setWeddingData(prev => {
-            const merged = { ...prev }
-            // Parse JSON fields
-            try { merged.timeline = JSON.parse(data.timeline || JSON.stringify(prev.timeline)) } catch {}
-            try { merged.galleryImages = JSON.parse(data.galleryImages || JSON.stringify(prev.galleryImages)) } catch {}
-            try { merged.galleryCaptions = JSON.parse(data.galleryCaptions || JSON.stringify(prev.galleryCaptions)) } catch {}
-            // Simple string fields
-            for (const key of ['groom', 'bride', 'groomParents', 'brideParents', 'akadDate', 'resepsiDate', 'resepsiEnd', 'venue', 'address', 'lamaranDate']) {
-              if (data[key]) (merged as Record<string, unknown>)[key] = data[key]
-            }
-            return merged
-          })
-        }
-      })
-      .catch(() => {}) // silently fail, use hardcoded
-  }, [])
+  // Keep module-level data in sync for section components
+  useEffect(() => { setWeddingData(data) }, [data])
 
   const handlePreloaderComplete = useCallback(() => setIsLoading(false), [])
 
@@ -2399,8 +2350,8 @@ export default function Home() {
       {isLoading && (
         <Preloader
           onComplete={handlePreloaderComplete}
-          groomName={WEDDING.groom}
-          brideName={WEDDING.bride}
+          groomName={getWeddingData().groom}
+          brideName={getWeddingData().bride}
         />
       )}
 

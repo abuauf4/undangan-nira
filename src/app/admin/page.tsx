@@ -35,44 +35,102 @@ interface Guest {
   createdAt: string
 }
 
-type Tab = 'konten' | 'foto' | 'tamu' | 'kehadiran' | 'ucapan'
+type Tab = 'mempelai' | 'acara' | 'cerita' | 'bismillah' | 'amplop' | 'foto' | 'tamu' | 'kehadiran' | 'ucapan'
 
-// Config fields grouped by section
-const CONFIG_FIELDS: { key: string; label: string; type: 'text' | 'textarea' | 'json'; group: string }[] = [
+// Config fields grouped by tab
+const CONFIG_FIELDS: { key: string; label: string; type: 'text' | 'textarea' | 'json'; tab: Tab; hint?: string }[] = [
   // Mempelai
-  { key: 'groom', label: 'Nama Pengantin Pria', type: 'text', group: 'Mempelai' },
-  { key: 'bride', label: 'Nama Pengantin Wanita', type: 'text', group: 'Mempelai' },
-  { key: 'groomParents', label: 'Orang Tua Pengantin Pria', type: 'text', group: 'Mempelai' },
-  { key: 'brideParents', label: 'Orang Tua Pengantin Wanita', type: 'text', group: 'Mempelai' },
+  { key: 'groom', label: 'Nama Pengantin Pria', type: 'text', tab: 'mempelai' },
+  { key: 'bride', label: 'Nama Pengantin Wanita', type: 'text', tab: 'mempelai' },
+  { key: 'groomParents', label: 'Orang Tua Pengantin Pria', type: 'text', tab: 'mempelai' },
+  { key: 'brideParents', label: 'Orang Tua Pengantin Wanita', type: 'text', tab: 'mempelai' },
+  { key: 'coupleSubtitle', label: 'Subtitle Mempelai (misal: Dua jiwa, satu kisah)', type: 'text', tab: 'mempelai' },
+  { key: 'coverSeal', label: 'Seal Monogram (misal: I&A)', type: 'text', tab: 'mempelai' },
   // Acara
-  { key: 'akadDate', label: 'Tanggal Akad (ISO)', type: 'text', group: 'Acara' },
-  { key: 'resepsiDate', label: 'Tanggal Resepsi (ISO)', type: 'text', group: 'Acara' },
-  { key: 'resepsiEnd', label: 'Selesai Resepsi (ISO)', type: 'text', group: 'Acara' },
-  { key: 'venue', label: 'Tempat', type: 'text', group: 'Acara' },
-  { key: 'address', label: 'Alamat Lengkap', type: 'textarea', group: 'Acara' },
-  { key: 'lamaranDate', label: 'Tanggal Lamaran', type: 'text', group: 'Acara' },
+  { key: 'akadDate', label: 'Tanggal Akad (ISO)', type: 'text', tab: 'acara', hint: 'Format: 2026-07-05T10:00:00+07:00' },
+  { key: 'resepsiDate', label: 'Tanggal Resepsi (ISO)', type: 'text', tab: 'acara', hint: 'Format: 2026-07-05T11:00:00+07:00' },
+  { key: 'resepsiEnd', label: 'Selesai Resepsi (ISO)', type: 'text', tab: 'acara' },
+  { key: 'venue', label: 'Tempat', type: 'text', tab: 'acara' },
+  { key: 'address', label: 'Alamat Lengkap', type: 'textarea', tab: 'acara' },
+  { key: 'lamaranDate', label: 'Tanggal Lamaran', type: 'text', tab: 'acara' },
+  { key: 'mapsUrl', label: 'Google Maps URL', type: 'text', tab: 'acara' },
+  { key: 'mapsQrImage', label: 'QR Code Maps Image Path', type: 'text', tab: 'acara', hint: '/images/maps-qrcode.png' },
   // Cerita
-  { key: 'diaryIntro', label: 'Intro Diary', type: 'textarea', group: 'Cerita' },
-  { key: 'diarySubtitle', label: 'Subtitle Diary', type: 'text', group: 'Cerita' },
-  { key: 'timeline', label: 'Timeline (JSON)', type: 'json', group: 'Cerita' },
-  // Closing
-  { key: 'closingTitle', label: 'Judul Closing', type: 'textarea', group: 'Closing' },
-  { key: 'closingSubtitle', label: 'Subtitle Closing', type: 'textarea', group: 'Closing' },
-  { key: 'closingTransliteration', label: 'Transliterasi Doa', type: 'textarea', group: 'Closing' },
-  { key: 'closingFooter', label: 'Footer Doa', type: 'textarea', group: 'Closing' },
-  { key: 'closingFinal', label: 'Teks Akhir', type: 'textarea', group: 'Closing' },
-  { key: 'creditText', label: 'Kredit', type: 'text', group: 'Closing' },
+  { key: 'diaryIntroYear', label: 'Tahun Diary Intro (misal: 2020)', type: 'text', tab: 'cerita' },
+  { key: 'diarySubtitle', label: 'Subtitle Diary', type: 'text', tab: 'cerita' },
+  { key: 'diaryIntro', label: 'Intro Diary (paragraf panjang)', type: 'textarea', tab: 'cerita' },
+  { key: 'timeline', label: 'Timeline Cerita (JSON)', type: 'json', tab: 'cerita', hint: '[{"year":"2022","title":"Mulai Dekat","description":"..."}]' },
+  { key: 'closingTitle', label: 'Judul Closing', type: 'textarea', tab: 'cerita' },
+  { key: 'closingSubtitle', label: 'Subtitle Closing', type: 'textarea', tab: 'cerita' },
+  { key: 'closingArabicDoa', label: 'Doa Bahasa Arab', type: 'textarea', tab: 'cerita' },
+  { key: 'closingTransliteration', label: 'Transliterasi Doa', type: 'textarea', tab: 'cerita' },
+  { key: 'closingFooter', label: 'Footer Doa', type: 'textarea', tab: 'cerita' },
+  { key: 'closingFinal', label: 'Teks Akhir', type: 'textarea', tab: 'cerita' },
+  { key: 'creditText', label: 'Kredit / Powered By', type: 'text', tab: 'cerita' },
   // Bismillah
-  { key: 'bismillahQuote', label: 'Ayat Bismillah', type: 'textarea', group: 'Bismillah' },
-  { key: 'bismillahSource', label: 'Sumber Ayat', type: 'text', group: 'Bismillah' },
-  // Gallery
-  { key: 'galleryCaptions', label: 'Caption Gallery (JSON)', type: 'json', group: 'Gallery' },
+  { key: 'bismillahQuote', label: 'Ayat Bismillah (terjemahan)', type: 'textarea', tab: 'bismillah' },
+  { key: 'bismillahSource', label: 'Sumber Ayat', type: 'text', tab: 'bismillah' },
+  // Amplop Digital
+  { key: 'envelopeMessage', label: 'Pesan Amplop Digital', type: 'textarea', tab: 'amplop' },
+  { key: 'bankAccounts', label: 'Rekening Bank (JSON)', type: 'json', tab: 'amplop', hint: '[{"bank":"BCA","number":"360058289","name":"Anira Tri Agustini"}]' },
+  { key: 'giftAddress', label: 'Alamat Kirim Hadiah', type: 'textarea', tab: 'amplop' },
+  { key: 'giftRecipient', label: 'Nama Penerima Hadiah', type: 'text', tab: 'amplop' },
 ]
+
+// Default values — seed from frontend hardcoded data
+const DEFAULT_VALUES: Record<string, string> = {
+  groom: 'Irwan Pratomo',
+  bride: 'Anira Tri Agustini',
+  groomParents: 'Bpk. Sugeng Hartanto & Ibu Dahlianingsih',
+  brideParents: 'Bpk. Andi Yosalfi & Ibu Budi Hastuti',
+  coupleSubtitle: 'Dua jiwa, satu kisah',
+  coverSeal: 'I&A',
+  akadDate: '2026-07-05T10:00:00+07:00',
+  resepsiDate: '2026-07-05T11:00:00+07:00',
+  resepsiEnd: '2026-07-05T17:00:00+07:00',
+  venue: 'Rumah Mempelai Wanita',
+  address: 'Villa Mutiara Bogor 2 Blok C2 No.36, Kel. Waringin Jaya, Kec. Bojonggede, Kab. Bogor',
+  lamaranDate: '31 Agustus 2025',
+  mapsUrl: 'https://maps.app.goo.gl/JJ1Lmg33ensJgAvEA?g_st=ac',
+  mapsQrImage: '/images/maps-qrcode.png',
+  diaryIntroYear: '2020',
+  diarySubtitle: 'Cerita kami dimulai',
+  diaryIntro: 'Tidak ada yang kebetulan di dunia ini, semua sudah tersusun rapih oleh Sang Maha Kuasa, kita tidak bisa memilih kepada siapa kita akan jatuh cinta, awal kami bertemu pada tahun 2020. Tidak ada yang pernah menyangka bahwa pertemuan itu membawa kami pada suatu ikatan yang suci. Setiap langkah yang kami ambil, setiap tawa dan air mata yang kami bagikan, seolah mengantarkan kami pada satu titik yang telah dituliskan sejak lamanya. Mungkin kami tidak selalu memahami jalan yang kami lalui, tapi kini kami yakin bahwa setiap detik telah menjadi bagian dari cerita ini.',
+  timeline: JSON.stringify([
+    { year: '2022', title: 'Mulai Dekat', description: 'Seiring berjalan waktu kami semakin dekat. Latar belakang yang berbeda membuat kami saling melengkapi dan banyak menemukan hal baru. Satu dua langkah menuntun kami hingga ke perjalanan selanjutnya.' },
+    { year: '2025', title: 'Lamaran', description: 'Kehendak-Nya menuntun kami pada pertemuan yang tak pernah disangka hingga akhirnya membawa kami pada sebuah ikatan suci yang dicintai-Nya, kami melangsungkan acara lamaran pada 31 Agustus 2025.' },
+    { year: '2026', title: 'Menikah', description: 'Percayalah, bukan karena bertemu lalu berjodoh, tapi karena berjodohlah kami dipertemukan. Atas izin Allah kami memutuskan untuk mengikrarkan janji suci pernikahan pada 05 Juli 2026.' },
+  ], null, 2),
+  closingTitle: 'Dan seperti semua cerita indah, kami memulai babak baru bersama.',
+  closingSubtitle: 'Terima kasih telah menjadi bagian dari hari bahagia kami.',
+  closingArabicDoa: 'بَارَكَ اللَّهُ لَكُمَا وَبَارَكَ عَلَيْكُمَا وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ',
+  closingTransliteration: 'Barakallahu lakuma wa baraka \'alaikuma wa jama\'a bainakuma fi khair.',
+  closingFooter: 'Forever starts with Bismillah.',
+  closingFinal: 'Cerita kami belum selesai, ini baru permulaan. Sampai jumpa di hari bahagia kami!',
+  creditText: 'Powered By Nauka Motion',
+  bismillahQuote: '"Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan hidup dari jenismu sendiri, supaya kamu merasa tenteram kepadanya, dan dijadikan-Nya di antaramu rasa kasih dan sayang."',
+  bismillahSource: '— QS. Ar-Rum: 21',
+  envelopeMessage: 'Doa restu Anda merupakan karunia yang sangat berarti bagi kami. Dan jika memberi adalah ungkapan tanda kasih, Anda bisa mengirimkan melalui:',
+  bankAccounts: JSON.stringify([
+    { bank: 'BCA', number: '360058289', name: 'Anira Tri Agustini' },
+    { bank: 'BCA', number: '7621009625', name: 'Irwan Pratomo' },
+  ], null, 2),
+  giftAddress: 'Villa Mutiara Bogor 2 Blok C2 No.36, Kel. Waringin Jaya, Kec. Bojonggede, Kab. Bogor',
+  giftRecipient: 'Anira Tri Agustini',
+  galleryCaptions: JSON.stringify(['Pertama kali', 'Bersama', 'Kenangan', 'Tawa', 'Bahagia'], null, 2),
+  galleryImages: JSON.stringify(['/images/gallery-1.jpg', '/images/gallery-2.jpg', '/images/gallery-3.jpg', '/images/gallery-4.jpg', '/images/gallery-5.jpg'], null, 2),
+  photoGroom: '/images/groom.jpg',
+  photoBride: '/images/bride.jpg',
+  coverImage: '/images/hero-poster.jpg',
+}
+
+// Helper: get value with fallback
+const getVal = (config: WeddingConfig, key: string) => config[key] ?? DEFAULT_VALUES[key] ?? ''
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
-  const [activeTab, setActiveTab] = useState<Tab>('konten')
+  const [activeTab, setActiveTab] = useState<Tab>('mempelai')
   const [config, setConfig] = useState<WeddingConfig>({})
   const [editedConfig, setEditedConfig] = useState<WeddingConfig>({})
   const [wishes, setWishes] = useState<Wish[]>([])
@@ -83,6 +141,7 @@ export default function AdminPage() {
   const [newGuestSuffix, setNewGuestSuffix] = useState('')
   const [addingGuest, setAddingGuest] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [seeding, setSeeding] = useState(false)
   const [toast, setToast] = useState('')
 
   // Check sessionStorage for existing auth
@@ -119,8 +178,10 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/config')
       const data = await res.json()
-      setConfig(data)
-      setEditedConfig(data)
+      // Merge with defaults so all fields have values
+      const merged = { ...DEFAULT_VALUES, ...data }
+      setConfig(merged)
+      setEditedConfig(merged)
     } catch (e) {
       console.error(e)
     }
@@ -186,6 +247,28 @@ export default function AdminPage() {
       showToast('Gagal menyimpan')
     }
     setSaving(false)
+  }
+
+  // Seed default values to DB
+  const seedDefaults = async () => {
+    if (!confirm('Ini akan menyimpan semua nilai default ke database. Lanjutkan?')) return
+    setSeeding(true)
+    try {
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(DEFAULT_VALUES),
+      })
+      if (res.ok) {
+        await fetchConfig()
+        showToast('Data default berhasil disimpan!')
+      } else {
+        showToast('Gagal menyimpan data default')
+      }
+    } catch {
+      showToast('Gagal menyimpan data default')
+    }
+    setSeeding(false)
   }
 
   const approveWish = async (id: string, approved: boolean) => {
@@ -274,16 +357,56 @@ export default function AdminPage() {
   const shareWhatsApp = (guest: Guest) => {
     const link = getGuestLink(guest.code)
     const displayName = getGuestDisplayName(guest)
-    const message = `Assalamu'alaikum ${displayName} 🤍\n\nKami mengundang Anda dengan penuh sukacita untuk hadir dalam acara pernikahan kami.\n\nIrwan & Anira\n05 Juli 2026\n\n📎 Buka undangan Anda di:\n${link}\n\nMerupakan kebahagiaan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.\n\nTerima kasih 🙏✨`
+    const groomName = getVal(editedConfig, 'groom')
+    const brideName = getVal(editedConfig, 'bride')
+    const message = `Assalamu'alaikum ${displayName} 🤍\n\nKami mengundang Anda dengan penuh sukacita untuk hadir dalam acara pernikahan kami.\n\n${groomName} & ${brideName}\n05 Juli 2026\n\n📎 Buka undangan Anda di:\n${link}\n\nMerupakan kebahagiaan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.\n\nTerima kasih 🙏✨`
     const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
     window.open(waUrl, '_blank')
+  }
+
+  // Helper to render a config field
+  const renderField = (fieldKey: string) => {
+    const field = CONFIG_FIELDS.find(f => f.key === fieldKey)
+    if (!field) return null
+    const value = getVal(editedConfig, field.key)
+    return (
+      <div key={field.key}>
+        <label className="text-xs mb-1 block" style={{ opacity: 0.6 }}>{field.label}</label>
+        {field.hint && <p className="text-[10px] mb-1" style={{ opacity: 0.35 }}>{field.hint}</p>}
+        {field.type === 'textarea' ? (
+          <textarea
+            value={value}
+            onChange={(e) => setEditedConfig({ ...editedConfig, [field.key]: e.target.value })}
+            rows={3}
+            className="w-full px-3 py-2 rounded-lg border text-sm outline-none resize-y"
+            style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
+          />
+        ) : field.type === 'json' ? (
+          <textarea
+            value={value}
+            onChange={(e) => setEditedConfig({ ...editedConfig, [field.key]: e.target.value })}
+            rows={6}
+            className="w-full px-3 py-2 rounded-lg border text-xs outline-none font-mono resize-y"
+            style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
+          />
+        ) : (
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => setEditedConfig({ ...editedConfig, [field.key]: e.target.value })}
+            className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
+          />
+        )}
+      </div>
+    )
   }
 
   // Login screen
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#1a1410' }}>
-        <div className="p-8 rounded-2xl border-2 max-w-sm w-full mx-4" style={{ borderColor: 'var(--gold)', background: 'rgba(250,245,230,0.05)' }}>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#1a1410' }}>
+        <div className="p-6 sm:p-8 rounded-2xl border-2 max-w-sm w-full" style={{ borderColor: 'var(--gold)', background: 'rgba(250,245,230,0.05)' }}>
           <h1 className="text-2xl mb-2 text-center" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold-light)' }}>
             Admin Panel
           </h1>
@@ -316,31 +439,39 @@ export default function AdminPage() {
   const attendingCount = rsvps.filter(r => r.attending).length
   const totalGuests = rsvps.filter(r => r.attending).reduce((sum, r) => sum + r.guests, 0)
 
-  // Group config fields
-  const groups = CONFIG_FIELDS.reduce((acc, f) => {
-    if (!acc[f.group]) acc[f.group] = []
-    acc[f.group].push(f)
-    return acc
-  }, {} as Record<string, typeof CONFIG_FIELDS>)
+  // Group config fields by current tab
+  const tabFields = CONFIG_FIELDS.filter(f => f.tab === activeTab)
+
+  const tabs: { id: Tab; label: string; icon?: string }[] = [
+    { id: 'mempelai', label: 'Mempelai', icon: '💑' },
+    { id: 'acara', label: 'Acara', icon: '📅' },
+    { id: 'cerita', label: 'Cerita', icon: '📖' },
+    { id: 'bismillah', label: 'Bismillah', icon: '☪' },
+    { id: 'amplop', label: 'Amplop', icon: '💌' },
+    { id: 'foto', label: 'Foto', icon: '📷' },
+    { id: 'tamu', label: `Tamu${guests.length > 0 ? ` (${guests.length})` : ''}`, icon: '👥' },
+    { id: 'kehadiran', label: 'Hadir', icon: '✓' },
+    { id: 'ucapan', label: `Ucapan${pendingWishes.length > 0 ? ` (${pendingWishes.length})` : ''}`, icon: '💬' },
+  ]
 
   return (
     <div className="min-h-screen" style={{ background: '#1a1410', color: 'var(--cream)' }}>
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 right-4 z-[99999] px-4 py-2 rounded-lg text-sm" style={{ background: 'var(--gold)', color: '#1a1410' }}>
+        <div className="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-xs z-[99999] px-4 py-2 rounded-lg text-sm text-center sm:text-left" style={{ background: 'var(--gold)', color: '#1a1410' }}>
           {toast}
         </div>
       )}
 
       {/* Header */}
-      <div className="border-b px-4 py-4" style={{ borderColor: 'rgba(201,169,110,0.2)' }}>
+      <div className="border-b px-3 sm:px-4 py-3 sm:py-4" style={{ borderColor: 'rgba(201,169,110,0.2)' }}>
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold-light)' }}>
+          <h1 className="text-base sm:text-xl truncate" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold-light)' }}>
             Undangan Nira — Admin
           </h1>
           <button
             onClick={() => { sessionStorage.removeItem('admin-auth'); setAuthenticated(false) }}
-            className="text-xs px-3 py-1.5 rounded border cursor-pointer hover:opacity-80"
+            className="text-xs px-3 py-1.5 rounded border cursor-pointer hover:opacity-80 flex-shrink-0 ml-2"
             style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}
           >
             Keluar
@@ -348,131 +479,72 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b px-4" style={{ borderColor: 'rgba(201,169,110,0.2)' }}>
-        <div className="max-w-6xl mx-auto flex gap-1 overflow-x-auto">
-          {([
-            { id: 'konten' as Tab, label: 'Konten' },
-            { id: 'foto' as Tab, label: 'Foto' },
-            { id: 'tamu' as Tab, label: `Tamu${guests.length > 0 ? ` (${guests.length})` : ''}` },
-            { id: 'kehadiran' as Tab, label: 'Kehadiran' },
-            { id: 'ucapan' as Tab, label: `Ucapan${pendingWishes.length > 0 ? ` (${pendingWishes.length})` : ''}` },
-          ]).map(tab => (
+      {/* Tabs — scrollable on mobile */}
+      <div className="border-b px-2 sm:px-4" style={{ borderColor: 'rgba(201,169,110,0.2)' }}>
+        <div className="max-w-6xl mx-auto flex gap-0 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="px-4 py-3 text-sm cursor-pointer transition-all whitespace-nowrap"
+              className="px-2.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm cursor-pointer transition-all whitespace-nowrap flex-shrink-0"
               style={{
                 color: activeTab === tab.id ? 'var(--gold)' : 'var(--cream)',
                 opacity: activeTab === tab.id ? 1 : 0.5,
                 borderBottom: activeTab === tab.id ? '2px solid var(--gold)' : '2px solid transparent',
               }}
             >
-              {tab.label}
+              <span className="sm:hidden">{tab.icon}</span>
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden ml-1">{tab.label.length > 6 ? '' : tab.label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto p-4">
-        {/* TAB: Konten */}
-        {activeTab === 'konten' && (
-          <div className="space-y-6">
-            {Object.entries(groups).map(([group, fields]) => (
-              <div key={group} className="rounded-xl border p-4" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
-                <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--gold)' }}>{group}</h3>
-                <div className="space-y-3">
-                  {fields.map(field => (
-                    <div key={field.key}>
-                      <label className="text-xs mb-1 block" style={{ opacity: 0.6 }}>{field.label}</label>
-                      {field.type === 'textarea' ? (
-                        <textarea
-                          value={editedConfig[field.key] || ''}
-                          onChange={(e) => setEditedConfig({ ...editedConfig, [field.key]: e.target.value })}
-                          rows={3}
-                          className="w-full px-3 py-2 rounded-lg border text-sm outline-none resize-y"
-                          style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
-                        />
-                      ) : field.type === 'json' ? (
-                        <textarea
-                          value={editedConfig[field.key] || ''}
-                          onChange={(e) => setEditedConfig({ ...editedConfig, [field.key]: e.target.value })}
-                          rows={5}
-                          className="w-full px-3 py-2 rounded-lg border text-sm outline-none font-mono resize-y"
-                          style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={editedConfig[field.key] || ''}
-                          onChange={(e) => setEditedConfig({ ...editedConfig, [field.key]: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
-                          style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-            <button
-              onClick={saveConfig}
-              disabled={saving}
-              className="px-6 py-3 rounded-lg text-sm font-medium cursor-pointer transition-all hover:opacity-90 disabled:opacity-50"
-              style={{ background: 'var(--gold)', color: '#1a1410' }}
-            >
-              {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
-            </button>
-          </div>
-        )}
+      <div className="max-w-6xl mx-auto p-3 sm:p-4">
 
-        {/* TAB: Foto */}
-        {activeTab === 'foto' && (
+        {/* ─── CONFIG TABS (Mempelai, Acara, Cerita, Bismillah, Amplop, Foto) ─── */}
+        {['mempelai', 'acara', 'cerita', 'bismillah', 'amplop', 'foto'].includes(activeTab) && (
           <div className="space-y-4">
-            <p className="text-sm" style={{ opacity: 0.6 }}>
-              Upload foto baru ke folder <code className="px-1.5 py-0.5 rounded text-xs" style={{ background: 'rgba(201,169,110,0.15)' }}>/public/images/</code>
-              lalu update nama file di field di bawah.
-            </p>
-            <div className="rounded-xl border p-4" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
-              <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--gold)' }}>Daftar Foto</h3>
+            {/* Seed button */}
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <p className="text-xs" style={{ opacity: 0.4 }}>Edit konten undangan di bawah. Perubahan otomatis tersimpan ke database.</p>
+              <button
+                onClick={seedDefaults}
+                disabled={seeding}
+                className="text-xs px-3 py-1.5 rounded border cursor-pointer hover:opacity-80 disabled:opacity-50 flex-shrink-0"
+                style={{ borderColor: 'rgba(201,169,110,0.3)', color: 'var(--gold)' }}
+              >
+                {seeding ? 'Menyimpan...' : 'Seed Default Data'}
+              </button>
+            </div>
+
+            {/* Fields */}
+            <div className="rounded-xl border p-3 sm:p-4" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
               <div className="space-y-3">
-                <div>
-                  <label className="text-xs mb-1 block" style={{ opacity: 0.6 }}>Foto Pengantin Pria (groom.jpg)</label>
-                  <input
-                    type="text"
-                    value={editedConfig['photoGroom'] || '/images/groom.jpg'}
-                    onChange={(e) => setEditedConfig({ ...editedConfig, photoGroom: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
-                    style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs mb-1 block" style={{ opacity: 0.6 }}>Foto Pengantin Wanita (bride.jpg)</label>
-                  <input
-                    type="text"
-                    value={editedConfig['photoBride'] || '/images/bride.jpg'}
-                    onChange={(e) => setEditedConfig({ ...editedConfig, photoBride: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
-                    style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs mb-1 block" style={{ opacity: 0.6 }}>Gallery Images (JSON array)</label>
-                  <textarea
-                    value={editedConfig['galleryImages'] || '[]'}
-                    onChange={(e) => setEditedConfig({ ...editedConfig, galleryImages: e.target.value })}
-                    rows={4}
-                    className="w-full px-3 py-2 rounded-lg border text-sm font-mono outline-none resize-y"
-                    style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
-                  />
-                </div>
+                {tabFields.map(field => renderField(field.key))}
               </div>
             </div>
+
+            {/* Foto tab extra */}
+            {activeTab === 'foto' && (
+              <div className="rounded-xl border p-3 sm:p-4" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
+                <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--gold)' }}>Foto Tambahan</h3>
+                <div className="space-y-3">
+                  {renderField('photoGroom')}
+                  {renderField('photoBride')}
+                  {renderField('coverImage')}
+                  {renderField('galleryImages')}
+                  {renderField('galleryCaptions')}
+                </div>
+              </div>
+            )}
+
             <button
               onClick={saveConfig}
               disabled={saving}
-              className="px-6 py-3 rounded-lg text-sm font-medium cursor-pointer transition-all hover:opacity-90 disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-3 rounded-lg text-sm font-medium cursor-pointer transition-all hover:opacity-90 disabled:opacity-50"
               style={{ background: 'var(--gold)', color: '#1a1410' }}
             >
               {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
@@ -480,19 +552,19 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TAB: Tamu */}
+        {/* ─── TAB: Tamu ─── */}
         {activeTab === 'tamu' && (
           <div className="space-y-4">
             {/* Add guest input */}
-            <div className="rounded-xl border p-4" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
+            <div className="rounded-xl border p-3 sm:p-4" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
               <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--gold)' }}>Tambah Tamu</h3>
               <div className="space-y-2">
-                <div className="flex gap-2">
-                  {/* Prefix dropdown */}
+                {/* Row 1: Prefix + Name */}
+                <div className="flex flex-col sm:flex-row gap-2">
                   <select
                     value={newGuestPrefix}
                     onChange={(e) => setNewGuestPrefix(e.target.value)}
-                    className="px-3 py-2.5 rounded-lg border text-sm outline-none cursor-pointer"
+                    className="px-3 py-2.5 rounded-lg border text-sm outline-none cursor-pointer w-full sm:w-auto"
                     style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)', minWidth: '100px' }}
                   >
                     <option value="" style={{ background: '#1a1410' }}>Tanpa</option>
@@ -510,8 +582,6 @@ export default function AdminPage() {
                     <option value="Saudara" style={{ background: '#1a1410' }}>Saudara</option>
                     <option value="Saudari" style={{ background: '#1a1410' }}>Saudari</option>
                   </select>
-
-                  {/* Name input */}
                   <input
                     type="text"
                     value={newGuestName}
@@ -521,27 +591,25 @@ export default function AdminPage() {
                     className="flex-1 px-3 py-2.5 rounded-lg border text-sm outline-none"
                     style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
                   />
-
-                  {/* Suffix dropdown */}
+                </div>
+                {/* Row 2: Suffix */}
+                <div className="flex flex-col sm:flex-row gap-2">
                   <select
                     value={newGuestSuffix}
                     onChange={(e) => setNewGuestSuffix(e.target.value)}
-                    className="px-3 py-2.5 rounded-lg border text-sm outline-none cursor-pointer"
-                    style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)', minWidth: '140px' }}
+                    className="px-3 py-2.5 rounded-lg border text-sm outline-none cursor-pointer w-full sm:w-auto"
+                    style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)', minWidth: '160px' }}
                   >
-                    <option value="" style={{ background: '#1a1410' }}>Tanpa</option>
+                    <option value="" style={{ background: '#1a1410' }}>Tanpa Suffix</option>
                     <option value="Dan Keluarga" style={{ background: '#1a1410' }}>Dan Keluarga</option>
                     <option value="Dan Istri" style={{ background: '#1a1410' }}>Dan Istri</option>
                     <option value="Dan Suami" style={{ background: '#1a1410' }}>Dan Suami</option>
                     <option value="Dan Partner" style={{ background: '#1a1410' }}>Dan Partner</option>
                   </select>
+                  <div className="text-xs px-1 flex items-center" style={{ color: 'var(--gold-light)', opacity: 0.6 }}>
+                    Preview: {newGuestPrefix && <span>{newGuestPrefix} </span>}{newGuestName || 'Nama Tamu'}{newGuestSuffix && <span> {newGuestSuffix}</span>}
+                  </div>
                 </div>
-
-                {/* Preview */}
-                <div className="text-xs px-1" style={{ color: 'var(--gold-light)', opacity: 0.6 }}>
-                  Preview: {newGuestPrefix && <span>{newGuestPrefix} </span>}{newGuestName || 'Nama Tamu'}{newGuestSuffix && <span> {newGuestSuffix}</span>}
-                </div>
-
                 <button
                   onClick={addGuest}
                   disabled={addingGuest || !newGuestName.trim()}
@@ -553,8 +621,8 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Guest list */}
-            <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'rgba(201,169,110,0.2)' }}>
+            {/* Guest list — card layout on mobile, table on desktop */}
+            <div className="rounded-xl border overflow-hidden hidden sm:block" style={{ borderColor: 'rgba(201,169,110,0.2)' }}>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -581,30 +649,9 @@ export default function AdminPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-1.5">
-                            <button
-                              onClick={() => copyGuestLink(guest.code)}
-                              className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80"
-                              style={{ background: 'rgba(201,169,110,0.2)', color: 'var(--gold-light)' }}
-                              title="Salin link"
-                            >
-                              Salin
-                            </button>
-                            <button
-                              onClick={() => shareWhatsApp(guest)}
-                              className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80"
-                              style={{ background: '#25D366', color: 'white' }}
-                              title="Bagikan via WhatsApp"
-                            >
-                              WhatsApp
-                            </button>
-                            <button
-                              onClick={() => deleteGuest(guest.id)}
-                              className="px-2 py-1.5 rounded text-xs cursor-pointer hover:opacity-80"
-                              style={{ background: 'rgba(248,113,113,0.2)', color: '#f87171' }}
-                              title="Hapus"
-                            >
-                              ✕
-                            </button>
+                            <button onClick={() => copyGuestLink(guest.code)} className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: 'rgba(201,169,110,0.2)', color: 'var(--gold-light)' }} title="Salin link">Salin</button>
+                            <button onClick={() => shareWhatsApp(guest)} className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: '#25D366', color: 'white' }} title="Bagikan via WhatsApp">WhatsApp</button>
+                            <button onClick={() => deleteGuest(guest.id)} className="px-2 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: 'rgba(248,113,113,0.2)', color: '#f87171' }} title="Hapus">✕</button>
                           </div>
                         </td>
                       </tr>
@@ -616,34 +663,77 @@ export default function AdminPage() {
                 </table>
               </div>
             </div>
+
+            {/* Mobile: Card layout */}
+            <div className="space-y-2 sm:hidden">
+              {guests.map(guest => (
+                <div key={guest.id} className="rounded-xl border p-3" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div>
+                      <p className="font-medium text-sm">
+                        {guest.prefix && <span style={{ color: 'var(--gold-light)', opacity: 0.7 }}>{guest.prefix} </span>}
+                        {guest.name}
+                        {guest.suffix && <span style={{ color: 'var(--gold-light)', opacity: 0.7 }}> {guest.suffix}</span>}
+                      </p>
+                      <code className="px-2 py-0.5 rounded text-[10px]" style={{ background: 'rgba(201,169,110,0.15)', color: 'var(--gold-light)' }}>{guest.code}</code>
+                    </div>
+                    <button onClick={() => deleteGuest(guest.id)} className="px-2 py-1 rounded text-xs cursor-pointer hover:opacity-80 flex-shrink-0" style={{ background: 'rgba(248,113,113,0.2)', color: '#f87171' }}>✕</button>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <button onClick={() => copyGuestLink(guest.code)} className="flex-1 py-1.5 rounded text-xs cursor-pointer hover:opacity-80 text-center" style={{ background: 'rgba(201,169,110,0.2)', color: 'var(--gold-light)' }}>Salin Link</button>
+                    <button onClick={() => shareWhatsApp(guest)} className="flex-1 py-1.5 rounded text-xs cursor-pointer hover:opacity-80 text-center" style={{ background: '#25D366', color: 'white' }}>WhatsApp</button>
+                  </div>
+                </div>
+              ))}
+              {guests.length === 0 && (
+                <p className="text-sm text-center py-8" style={{ opacity: 0.4 }}>Belum ada tamu.</p>
+              )}
+            </div>
           </div>
         )}
 
-        {/* TAB: Kehadiran */}
+        {/* ─── TAB: Kehadiran ─── */}
         {activeTab === 'kehadiran' && (
           <div className="space-y-4">
             {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="rounded-xl border p-4 text-center" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
-                <p className="text-2xl font-bold" style={{ color: 'var(--gold)' }}>{rsvps.length}</p>
-                <p className="text-xs" style={{ opacity: 0.6 }}>Total RSVP</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+              <div className="rounded-xl border p-3 sm:p-4 text-center" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
+                <p className="text-xl sm:text-2xl font-bold" style={{ color: 'var(--gold)' }}>{rsvps.length}</p>
+                <p className="text-[10px] sm:text-xs" style={{ opacity: 0.6 }}>Total RSVP</p>
               </div>
-              <div className="rounded-xl border p-4 text-center" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
-                <p className="text-2xl font-bold" style={{ color: '#4ade80' }}>{attendingCount}</p>
-                <p className="text-xs" style={{ opacity: 0.6 }}>Hadir</p>
+              <div className="rounded-xl border p-3 sm:p-4 text-center" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
+                <p className="text-xl sm:text-2xl font-bold" style={{ color: '#4ade80' }}>{attendingCount}</p>
+                <p className="text-[10px] sm:text-xs" style={{ opacity: 0.6 }}>Hadir</p>
               </div>
-              <div className="rounded-xl border p-4 text-center" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
-                <p className="text-2xl font-bold" style={{ color: '#f87171' }}>{rsvps.length - attendingCount}</p>
-                <p className="text-xs" style={{ opacity: 0.6 }}>Tidak Hadir</p>
+              <div className="rounded-xl border p-3 sm:p-4 text-center" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
+                <p className="text-xl sm:text-2xl font-bold" style={{ color: '#f87171' }}>{rsvps.length - attendingCount}</p>
+                <p className="text-[10px] sm:text-xs" style={{ opacity: 0.6 }}>Tidak Hadir</p>
               </div>
-              <div className="rounded-xl border p-4 text-center" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
-                <p className="text-2xl font-bold" style={{ color: 'var(--gold-light)' }}>{totalGuests}</p>
-                <p className="text-xs" style={{ opacity: 0.6 }}>Total Tamu</p>
+              <div className="rounded-xl border p-3 sm:p-4 text-center" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
+                <p className="text-xl sm:text-2xl font-bold" style={{ color: 'var(--gold-light)' }}>{totalGuests}</p>
+                <p className="text-[10px] sm:text-xs" style={{ opacity: 0.6 }}>Total Tamu</p>
               </div>
             </div>
 
-            {/* Table */}
-            <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'rgba(201,169,110,0.2)' }}>
+            {/* Mobile: Card layout */}
+            <div className="space-y-2 sm:hidden">
+              {rsvps.map(rsvp => (
+                <div key={rsvp.id} className="rounded-xl border p-3" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-medium text-sm">{rsvp.name}</p>
+                    <span className="px-2 py-0.5 rounded text-[10px]" style={{ background: rsvp.attending ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)', color: rsvp.attending ? '#4ade80' : '#f87171' }}>
+                      {rsvp.attending ? 'Hadir' : 'Tidak Hadir'}
+                    </span>
+                  </div>
+                  <p className="text-xs" style={{ opacity: 0.5 }}>{rsvp.guests} tamu • {new Date(rsvp.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</p>
+                  {rsvp.message && <p className="text-xs mt-1" style={{ opacity: 0.6 }}>{rsvp.message}</p>}
+                </div>
+              ))}
+              {rsvps.length === 0 && <p className="text-sm text-center py-8" style={{ opacity: 0.4 }}>Belum ada RSVP</p>}
+            </div>
+
+            {/* Desktop: Table */}
+            <div className="rounded-xl border overflow-hidden hidden sm:block" style={{ borderColor: 'rgba(201,169,110,0.2)' }}>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -679,9 +769,9 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TAB: Ucapan */}
+        {/* ─── TAB: Ucapan ─── */}
         {activeTab === 'ucapan' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Pending */}
             {pendingWishes.length > 0 && (
               <div>
@@ -690,13 +780,13 @@ export default function AdminPage() {
                 </h3>
                 <div className="space-y-2">
                   {pendingWishes.map(wish => (
-                    <div key={wish.id} className="rounded-xl border p-4" style={{ borderColor: 'rgba(251,191,36,0.3)', background: 'rgba(251,191,36,0.05)' }}>
-                      <div className="flex items-start justify-between gap-3">
+                    <div key={wish.id} className="rounded-xl border p-3 sm:p-4" style={{ borderColor: 'rgba(251,191,36,0.3)', background: 'rgba(251,191,36,0.05)' }}>
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: 'var(--gold)', color: '#1a1410' }}>{wish.avatar}</span>
+                            <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'var(--gold)', color: '#1a1410' }}>{wish.avatar}</span>
                             <span className="font-medium text-sm">{wish.name}</span>
-                            <span className="text-xs" style={{ opacity: 0.4 }}>{new Date(wish.createdAt).toLocaleDateString('id-ID')}</span>
+                            <span className="text-[10px]" style={{ opacity: 0.4 }}>{new Date(wish.createdAt).toLocaleDateString('id-ID')}</span>
                           </div>
                           <p className="text-sm" style={{ opacity: 0.8 }}>{wish.message}</p>
                         </div>
@@ -718,13 +808,13 @@ export default function AdminPage() {
               </h3>
               <div className="space-y-2">
                 {approvedWishes.map(wish => (
-                  <div key={wish.id} className="rounded-xl border p-4" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
-                    <div className="flex items-start justify-between gap-3">
+                  <div key={wish.id} className="rounded-xl border p-3 sm:p-4" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: 'var(--gold)', color: '#1a1410' }}>{wish.avatar}</span>
+                          <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'var(--gold)', color: '#1a1410' }}>{wish.avatar}</span>
                           <span className="font-medium text-sm">{wish.name}</span>
-                          <span className="text-xs" style={{ opacity: 0.4 }}>{new Date(wish.createdAt).toLocaleDateString('id-ID')}</span>
+                          <span className="text-[10px]" style={{ opacity: 0.4 }}>{new Date(wish.createdAt).toLocaleDateString('id-ID')}</span>
                         </div>
                         <p className="text-sm" style={{ opacity: 0.8 }}>{wish.message}</p>
                       </div>
