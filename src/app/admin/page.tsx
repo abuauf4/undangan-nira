@@ -31,6 +31,7 @@ interface Guest {
   name: string
   prefix: string
   suffix: string
+  slug: string
   code: string
   createdAt: string
 }
@@ -329,7 +330,7 @@ export default function AdminPage() {
   const deleteGuest = async (id: string) => {
     if (!confirm('Hapus tamu ini?')) return
     try {
-      await fetch(`/api/guests/${id}`, { method: 'DELETE' })
+      await fetch(`/api/guests?id=${id}`, { method: 'DELETE' })
       setGuests(guests.filter(g => g.id !== id))
       showToast('Tamu dihapus')
     } catch {
@@ -337,13 +338,13 @@ export default function AdminPage() {
     }
   }
 
-  const getGuestLink = (code: string) => {
+  const getGuestLink = (slug: string) => {
     const base = window.location.origin
-    return `${base}?guest=${code}`
+    return `${base}/to/${slug}`
   }
 
-  const copyGuestLink = async (code: string) => {
-    const link = getGuestLink(code)
+  const copyGuestLink = async (slug: string) => {
+    const link = getGuestLink(slug)
     try {
       await navigator.clipboard.writeText(link)
       showToast('Link disalin!')
@@ -361,7 +362,7 @@ export default function AdminPage() {
   }
 
   const shareWhatsApp = (guest: Guest) => {
-    const link = getGuestLink(guest.code)
+    const link = getGuestLink(guest.slug)
     const displayName = getGuestDisplayName(guest)
     const groomName = getVal(editedConfig, 'groom')
     const brideName = getVal(editedConfig, 'bride')
@@ -620,7 +621,6 @@ export default function AdminPage() {
                   <thead>
                     <tr style={{ background: 'rgba(201,169,110,0.1)' }}>
                       <th className="text-left px-4 py-3 font-medium" style={{ color: 'var(--gold)' }}>Nama</th>
-                      <th className="text-left px-4 py-3 font-medium" style={{ color: 'var(--gold)' }}>Kode</th>
                       <th className="text-left px-4 py-3 font-medium" style={{ color: 'var(--gold)' }}>Link</th>
                       <th className="text-left px-4 py-3 font-medium" style={{ color: 'var(--gold)' }}>Aksi</th>
                     </tr>
@@ -633,15 +633,12 @@ export default function AdminPage() {
                           {guest.name}
                           {guest.suffix && <span style={{ color: 'var(--gold-light)', opacity: 0.7 }}> {guest.suffix}</span>}
                         </td>
-                        <td className="px-4 py-3">
-                          <code className="px-2 py-1 rounded text-xs" style={{ background: 'rgba(201,169,110,0.15)', color: 'var(--gold-light)' }}>{guest.code}</code>
-                        </td>
-                        <td className="px-4 py-3 max-w-[200px] truncate" style={{ opacity: 0.7, fontSize: '11px' }}>
-                          {getGuestLink(guest.code)}
+                        <td className="px-4 py-3 max-w-[250px] truncate" style={{ opacity: 0.7, fontSize: '11px' }}>
+                          {getGuestLink(guest.slug)}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-1.5">
-                            <button onClick={() => copyGuestLink(guest.code)} className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: 'rgba(201,169,110,0.2)', color: 'var(--gold-light)' }} title="Salin link">Salin</button>
+                            <button onClick={() => copyGuestLink(guest.slug)} className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: 'rgba(201,169,110,0.2)', color: 'var(--gold-light)' }} title="Salin link">Salin</button>
                             <button onClick={() => shareWhatsApp(guest)} className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: '#25D366', color: 'white' }} title="Bagikan via WhatsApp">WhatsApp</button>
                             <button onClick={() => deleteGuest(guest.id)} className="px-2 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: 'rgba(248,113,113,0.2)', color: '#f87171' }} title="Hapus">✕</button>
                           </div>
@@ -667,12 +664,12 @@ export default function AdminPage() {
                         {guest.name}
                         {guest.suffix && <span style={{ color: 'var(--gold-light)', opacity: 0.7 }}> {guest.suffix}</span>}
                       </p>
-                      <code className="px-2 py-0.5 rounded text-[10px]" style={{ background: 'rgba(201,169,110,0.15)', color: 'var(--gold-light)' }}>{guest.code}</code>
+                      <p className="text-[10px] mt-1 break-all" style={{ opacity: 0.5 }}>{getGuestLink(guest.slug)}</p>
                     </div>
                     <button onClick={() => deleteGuest(guest.id)} className="px-2 py-1 rounded text-xs cursor-pointer hover:opacity-80 flex-shrink-0" style={{ background: 'rgba(248,113,113,0.2)', color: '#f87171' }}>✕</button>
                   </div>
                   <div className="flex gap-1.5">
-                    <button onClick={() => copyGuestLink(guest.code)} className="flex-1 py-1.5 rounded text-xs cursor-pointer hover:opacity-80 text-center" style={{ background: 'rgba(201,169,110,0.2)', color: 'var(--gold-light)' }}>Salin Link</button>
+                    <button onClick={() => copyGuestLink(guest.slug)} className="flex-1 py-1.5 rounded text-xs cursor-pointer hover:opacity-80 text-center" style={{ background: 'rgba(201,169,110,0.2)', color: 'var(--gold-light)' }}>Salin Link</button>
                     <button onClick={() => shareWhatsApp(guest)} className="flex-1 py-1.5 rounded text-xs cursor-pointer hover:opacity-80 text-center" style={{ background: '#25D366', color: 'white' }}>WhatsApp</button>
                   </div>
                 </div>

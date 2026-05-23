@@ -21,11 +21,24 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
   const petalContainerRef = useRef<HTMLDivElement>(null)
   const mouseRef = useRef({ x: 0, y: 0 })
 
-  // Resolve guest code to name
+  // Resolve guest slug/code to name (personalized URL: /to/nama-tamu)
   useEffect(() => {
+    const guestSlug = searchParams.get('guestSlug')
     const guestCode = searchParams.get('guest')
-    if (guestCode) {
-      fetch(`/api/guests/lookup?code=${guestCode}`)
+
+    if (guestSlug) {
+      fetch(`/api/guests/lookup?slug=${encodeURIComponent(guestSlug)}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.name) {
+            setGuestName(data.name)
+            if (data.prefix) setGuestPrefix(data.prefix)
+            if (data.suffix) setGuestSuffix(data.suffix)
+          }
+        })
+        .catch(() => {})
+    } else if (guestCode) {
+      fetch(`/api/guests/lookup?code=${encodeURIComponent(guestCode)}`)
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (data?.name) {

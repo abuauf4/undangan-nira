@@ -1,6 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+// Slug generation helper — from name to URL-friendly slug
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')   // remove special chars
+    .replace(/\s+/g, '-')        // spaces → hyphens
+    .replace(/-+/g, '-')         // multiple hyphens → single
+    .replace(/^-|-$/g, '')       // trim leading/trailing hyphens
+}
+
+// Generate unique slug by checking DB
+async function getUniqueSlug(name: string): Promise<string> {
+  const baseSlug = generateSlug(name)
+  if (!baseSlug) return `guest-${Date.now()}`
+  let slug = baseSlug
+  let counter = 2
+  while (true) {
+    const existing = await db.guest.findUnique({ where: { slug } })
+    if (!existing) break
+    slug = `${baseSlug}-${counter}`
+    counter++
+  }
+  return slug
+}
+
 // GET /api/guests — Fetch all guests, newest first
 export async function GET() {
   try {
@@ -14,7 +40,7 @@ export async function GET() {
   }
 }
 
-// POST /api/guests — Add a new guest (auto-generate unique code)
+// POST /api/guests — Add a new guest (auto-generate unique code + slug)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -34,9 +60,12 @@ export async function POST(request: NextRequest) {
     const safePrefix = validPrefixes.includes(prefix) ? prefix : ''
     const safeSuffix = validSuffixes.includes(suffix) ? suffix : ''
 
+    // Generate unique slug from name
+    const slug = await getUniqueSlug(name.trim())
+
     // Generate a unique 8-char code (alphanumeric, uppercase)
     const generateCode = () => {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // no confusing chars (0/O, 1/I/L)
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
       let code = ''
       for (let i = 0; i < 8; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length))
@@ -54,6 +83,7 @@ export async function POST(request: NextRequest) {
             name: name.trim(),
             prefix: safePrefix,
             suffix: safeSuffix,
+            slug,
             code,
           },
         })
@@ -71,5 +101,21 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Failed to create guest:', error)
     return NextResponse.json({ error: 'Gagal menambahkan tamu' }, { status: 500 })
+  }
+}
+
+// DELETE /api/guests?id=xxx — Delete a guest
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    if (!id) {
+      return NextResponse.json({ error: 'ID diperlukan' }, { status: 400 })
+    }
+    await db.guest.delete({ where: { id } })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Failed to delete guest:', error)
+    return NextResponse.json({ error: 'Failed to delete guest' }, { status: 500 })
   }
 }
