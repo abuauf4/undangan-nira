@@ -2251,7 +2251,7 @@ export default function Home() {
       } else if (pastCountdown) {
         speed = pxPerMsCountdown // 2x — faster through countdown
       } else if (atDiaryIntro) {
-        speed = pxPerMs * 1  // Normal 1x at diary intro
+        speed = pxPerMs * 0.8  // 0.8x = 20 px/s — slower so handwriting reads comfortably
       } else {
         speed = pxPerMs        // 1x — Normal cinematic drift
       }
