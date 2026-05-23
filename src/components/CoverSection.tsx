@@ -303,7 +303,7 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
       {/* Content — with cinematic entrance */}
       <div
         ref={contentRef}
-        className="relative z-10 w-full max-w-md mx-auto px-6 text-center"
+        className="relative z-[25] w-full max-w-md mx-auto px-6 text-center"
         style={{
           transition: 'transform 0.6s ease-out, opacity 0.6s ease',
           willChange: 'transform, opacity',
