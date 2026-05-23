@@ -2161,6 +2161,7 @@ export default function Home() {
     let acaraElRef: Element | null | undefined = undefined
     let galleryElRef: Element | null | undefined = undefined
     let rsvpElRef: Element | null | undefined = undefined
+    let envelopeElRef: Element | null | undefined = undefined
     let closingElRef: Element | null | undefined = undefined
 
     const isAtDiaryIntro = (): boolean => {
@@ -2190,12 +2191,19 @@ export default function Home() {
       if (!rsvpElRef) return false
       return rsvpElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
     }
+    const isPastEnvelope = (): boolean => {
+      if (envelopeElRef === undefined) envelopeElRef = document.querySelector('[data-section="envelope"]')
+      if (!envelopeElRef) return false
+      // Envelope top has passed 50% viewport — we're in envelope/wishes zone
+      return envelopeElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
+    }
+
     const isClosingApproaching = (): boolean => {
       if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
       if (!closingElRef) return false
       // Closing section visible in viewport — start decelerating smoothly
-      // Detects earlier (80%) so speed drops from 2x → 1x before the cinematic lock at top 0%
-      return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.8
+      // Detects when closing top reaches 100% viewport (just entering view)
+      return closingElRef.getBoundingClientRect().top <= window.innerHeight
     }
 
     // ─── State ───
@@ -2243,8 +2251,10 @@ export default function Home() {
       let speed: number
       if (isClosingApproaching()) {
         speed = pxPerMs * 1    // 1x — smooth deceleration before closing lock (2x → 1x → 0)
+      } else if (isPastEnvelope()) {
+        speed = pxPerMs * 1    // 1x — slow down at envelope/wishes, approaching closing
       } else if (pastRSVP) {
-        speed = pxPerMsRSVP    // 2x — cruise through RSVP/envelope/wishes
+        speed = pxPerMsRSVP    // 2x — cruise through RSVP section
       } else if (pastGallery) {
         speed = pxPerMs        // 1x — normal cinematic pace for gallery photos
       } else if (pastAcara) {
@@ -2292,6 +2302,7 @@ export default function Home() {
       acaraElRef = undefined
       galleryElRef = undefined
       rsvpElRef = undefined
+      envelopeElRef = undefined
       closingElRef = undefined
     }
 
