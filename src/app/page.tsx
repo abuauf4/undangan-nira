@@ -2190,12 +2190,12 @@ export default function Home() {
       if (!rsvpElRef) return false
       return rsvpElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
     }
-    const isPastClosing = (): boolean => {
+    const isClosingApproaching = (): boolean => {
       if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
       if (!closingElRef) return false
-      // Closing top has reached 50% of viewport — section is clearly visible
-      // Only slow down, NEVER pause — prevents deadlock from ScrollTrigger.refresh()
-      return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
+      // Closing section visible in viewport — start decelerating smoothly
+      // Detects earlier (80%) so speed drops from 2x → 1x before the cinematic lock at top 0%
+      return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.8
     }
 
     // ─── State ───
@@ -2234,14 +2234,15 @@ export default function Home() {
       const pastAcara = isPastAcara()
       const pastGallery = isPastGallery()
       const pastRSVP = isPastRSVP()
-      const pastClosing = isPastClosing()
+      // isClosingApproaching() checked inline in speed logic below
 
       // ─── Accumulate fractional pixels ───
-      // 6-zone speed: normal → diary intro 0.4x → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing 1.5x
+      // Speed zones: normal 1x → diary intro 0.8x → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing approach 1x → lock 0
       // Diary intro: slower so handwriting can complete before scroll moves past
+      // Closing approach: decelerate from 2x to 1x before cinematic lock for smooth transition
       let speed: number
-      if (pastClosing) {
-        speed = pxPerMs * 1.5  // Slightly faster 1.5x — stays ahead of handwriting animation
+      if (isClosingApproaching()) {
+        speed = pxPerMs * 1    // 1x — smooth deceleration before closing lock (2x → 1x → 0)
       } else if (pastRSVP) {
         speed = pxPerMsRSVP    // 2x — cruise through RSVP/envelope/wishes
       } else if (pastGallery) {
