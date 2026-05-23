@@ -1925,15 +1925,11 @@ function ClosingSection() {
     )
     closingObserver.observe(section)
 
-    // ScrollTrigger: pause auto-scroll when closing section top reaches viewport top (0%)
-    // Animation already started at 30% visible, scroll keeps going until here
-    ScrollTrigger.create({
-      trigger: section,
-      start: 'top 0%',
-      onEnter: () => {
-        window.dispatchEvent(new CustomEvent('closing-sequence-start'))
-      },
-    })
+    // NOTE: Closing auto-scroll lock is now handled directly in the
+    // auto-scroll tick function (see isClosingReadyToLock check).
+    // This avoids ScrollTrigger miscalculating positions after diary pin removal,
+    // which caused closing-sequence-start to fire too early (at envelope section).
+    // Animation start (30% visible) is still handled by IntersectionObserver above.
 
     return () => closingObserver.disconnect()
   }, [])
@@ -2191,19 +2187,21 @@ export default function Home() {
       if (!rsvpElRef) return false
       return rsvpElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
     }
-    const isPastEnvelope = (): boolean => {
-      if (envelopeElRef === undefined) envelopeElRef = document.querySelector('[data-section="envelope"]')
-      if (!envelopeElRef) return false
-      // Envelope top has passed 50% viewport — we're in envelope/wishes zone
-      return envelopeElRef.getBoundingClientRect().top <= window.innerHeight * 0.5
-    }
-
-    const isClosingApproaching = (): boolean => {
+    const isClosingVisible = (): boolean => {
       if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
       if (!closingElRef) return false
-      // Closing section visible in viewport — start decelerating smoothly
-      // Detects when closing top reaches 100% viewport (just entering view)
+      // Closing section entering viewport — start smooth deceleration
       return closingElRef.getBoundingClientRect().top <= window.innerHeight
+    }
+
+    const isClosingReadyToLock = (): boolean => {
+      if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
+      if (!closingElRef) return false
+      // Closing section top has reached top 15% of viewport — lock auto-scroll
+      // Using 15% instead of 0% to ensure closing is truly the main content on screen
+      // This is checked directly in tick() instead of ScrollTrigger to avoid
+      // miscalculations after diary pin removal
+      return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.15
     }
 
     // ─── State ───
@@ -2242,19 +2240,25 @@ export default function Home() {
       const pastAcara = isPastAcara()
       const pastGallery = isPastGallery()
       const pastRSVP = isPastRSVP()
-      // isClosingApproaching() checked inline in speed logic below
+      const closingVisible = isClosingVisible()
+      const closingReadyToLock = isClosingReadyToLock()
+
+      // ─── Closing lock — dispatch event when closing reaches top 15% of viewport ───
+      // This replaces the old ScrollTrigger-based lock which miscalculated after diary pin removal
+      if (closingReadyToLock && !cinematicLock) {
+        window.dispatchEvent(new CustomEvent('closing-sequence-start'))
+      }
 
       // ─── Accumulate fractional pixels ───
-      // Speed zones: normal 1x → diary intro 0.8x → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing approach 1x → lock 0
+      // Speed zones: normal 1x → diary intro 0.8x → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing visible 1.5x → lock 0
       // Diary intro: slower so handwriting can complete before scroll moves past
-      // Closing approach: decelerate from 2x to 1x before cinematic lock for smooth transition
+      // Closing visible: smooth deceleration from 2x to 1.5x before cinematic lock
+      // No more 1x zones at envelope — that was causing perceived "stops"
       let speed: number
-      if (isClosingApproaching()) {
-        speed = pxPerMs * 1    // 1x — smooth deceleration before closing lock (2x → 1x → 0)
-      } else if (isPastEnvelope()) {
-        speed = pxPerMs * 1    // 1x — slow down at envelope/wishes, approaching closing
+      if (closingVisible) {
+        speed = pxPerMs * 1.5  // 1.5x — smooth deceleration before closing lock (2x → 1.5x → 0)
       } else if (pastRSVP) {
-        speed = pxPerMsRSVP    // 2x — cruise through RSVP section
+        speed = pxPerMsRSVP    // 2x — cruise through RSVP + envelope + wishes
       } else if (pastGallery) {
         speed = pxPerMs        // 1x — normal cinematic pace for gallery photos
       } else if (pastAcara) {
