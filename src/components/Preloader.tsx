@@ -279,7 +279,7 @@ export default function Preloader({ onComplete, groomName, brideName }: Preloade
         className="absolute bottom-6 text-[7px] sm:text-[8px] tracking-[0.3em] uppercase"
         style={{ fontFamily: 'var(--font-body)', color: 'var(--brown-soft)', opacity: 0.3 }}
       >
-        Dibuat oleh Nauka Creative Digital
+        Dibuat oleh Nauka Motion
       </p>
     </div>
   )

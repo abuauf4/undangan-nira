@@ -1984,7 +1984,7 @@ function ClosingSection() {
 
         {/* Final emotional line — handwriting, then dust */}
         <div ref={finalRef} className="text-2xl sm:text-3xl min-h-[2em]" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', fontWeight: 300, fontStyle: 'italic' }}>
-          Cerita mereka belum selesai...
+          Cerita kami belum selesai...
         </div>
 
         {/* Credit — appears after dust settles, the only thing left */}
@@ -1997,7 +1997,7 @@ function ClosingSection() {
             className="text-[10px] sm:text-xs tracking-[0.1em] leading-relaxed"
             style={{ fontFamily: "'Inter', sans-serif", color: '#ffffff', opacity: 0.4 }}
           >
-            Kami Nauka Creative Digital mempersembahkan ini untuk kedua mempelai
+            Powered By Nauka Motion
           </p>
         </div>
       </div>
