@@ -67,6 +67,12 @@ const CONFIG_FIELDS: { key: string; label: string; type: 'text' | 'textarea' | '
   { key: 'closingFooter', label: 'Footer Doa', type: 'textarea', tab: 'cerita' },
   { key: 'closingFinal', label: 'Teks Akhir', type: 'textarea', tab: 'cerita' },
   { key: 'creditText', label: 'Kredit / Powered By', type: 'text', tab: 'cerita' },
+  // Foto
+  { key: 'photoGroom', label: 'Foto Pengantin Pria', type: 'text', tab: 'foto', hint: 'Path gambar, misal: /images/groom.jpg' },
+  { key: 'photoBride', label: 'Foto Pengantin Wanita', type: 'text', tab: 'foto', hint: 'Path gambar, misal: /images/bride.jpg' },
+  { key: 'coverImage', label: 'Foto Cover / Hero', type: 'text', tab: 'foto', hint: 'Path gambar, misal: /images/hero-poster.jpg' },
+  { key: 'galleryImages', label: 'Daftar Foto Gallery (JSON)', type: 'json', tab: 'foto', hint: '[\"/images/gallery-1.jpg\", \"/images/gallery-2.jpg\", ...]' },
+  { key: 'galleryCaptions', label: 'Caption Gallery (JSON)', type: 'json', tab: 'foto', hint: '[\"Pertama kali\", \"Bersama\", ...]' },
   // Bismillah
   { key: 'bismillahQuote', label: 'Ayat Bismillah (terjemahan)', type: 'textarea', tab: 'bismillah' },
   { key: 'bismillahSource', label: 'Sumber Ayat', type: 'text', tab: 'bismillah' },
@@ -526,20 +532,6 @@ export default function AdminPage() {
                 {tabFields.map(field => renderField(field.key))}
               </div>
             </div>
-
-            {/* Foto tab extra */}
-            {activeTab === 'foto' && (
-              <div className="rounded-xl border p-3 sm:p-4" style={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(250,245,230,0.03)' }}>
-                <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--gold)' }}>Foto Tambahan</h3>
-                <div className="space-y-3">
-                  {renderField('photoGroom')}
-                  {renderField('photoBride')}
-                  {renderField('coverImage')}
-                  {renderField('galleryImages')}
-                  {renderField('galleryCaptions')}
-                </div>
-              </div>
-            )}
 
             <button
               onClick={saveConfig}
