@@ -199,8 +199,12 @@ export default function AdminPage() {
   const fetchWishes = useCallback(async () => {
     try {
       const res = await fetch('/api/wishes')
-      const data = await res.json()
-      setWishes(data)
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data)) {
+          setWishes(data)
+        }
+      }
     } catch (e) {
       console.error(e)
     }
@@ -209,8 +213,12 @@ export default function AdminPage() {
   const fetchRsvps = useCallback(async () => {
     try {
       const res = await fetch('/api/rsvp')
-      const data = await res.json()
-      setRsvps(data)
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data)) {
+          setRsvps(data)
+        }
+      }
     } catch (e) {
       console.error(e)
     }
@@ -219,8 +227,14 @@ export default function AdminPage() {
   const fetchGuests = useCallback(async () => {
     try {
       const res = await fetch('/api/guests')
-      const data = await res.json()
-      setGuests(data)
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data)) {
+          setGuests(data)
+        }
+      } else {
+        console.error('Failed to fetch guests:', res.status)
+      }
     } catch (e) {
       console.error(e)
     }
