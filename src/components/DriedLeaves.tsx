@@ -81,8 +81,6 @@ export default function DriedLeaves() {
     el.style.willChange = 'transform, opacity'
     el.style.left = '0'
     el.style.top = '0'
-    // Add a subtle glow/shadow to make leaves more visible
-    el.style.filter = 'drop-shadow(0 2px 6px rgba(139,100,50,0.3))'
 
     if (id === 'A') {
       // Leaf A — elongated, warm brown, slightly curled — groom's leaf
@@ -151,8 +149,8 @@ export default function DriedLeaves() {
     const vw = window.innerWidth
     const vh = window.innerHeight
 
-    const startX = id === 'A' ? vw * 0.2 : vw * 0.8
-    const startY = vh * 0.1
+    const startX = id === 'A' ? vw * 0.25 : vw * 0.75
+    const startY = vh * 0.15
 
     return {
       id,
@@ -160,9 +158,9 @@ export default function DriedLeaves() {
       y: startY,
       vx: 0,
       vy: 0,
-      rotation: id === 'A' ? 15 : -20,
-      rotationVel: id === 'A' ? 0.1 : -0.08,
-      scale: 1,
+      rotation: id === 'A' ? 12 : -18,
+      rotationVel: id === 'A' ? 0.05 : -0.04,
+      scale: 0.85,
       opacity: 0,
       element: el,
       swayDirection: id === 'A' ? 1 : -1,
@@ -225,9 +223,9 @@ export default function DriedLeaves() {
       const togetherX = vw * 0.5
 
       leavesRef.current.forEach(leaf => {
-        // ─── Fade in at start ───
-        if (!leaf.isClosing && leaf.opacity < 0.85) {
-          leaf.opacity = Math.min(0.85, leaf.opacity + 0.005)
+        // ─── Fade in gently at start ───
+        if (!leaf.isClosing && leaf.opacity < 0.6) {
+          leaf.opacity = Math.min(0.6, leaf.opacity + 0.003)
         }
 
         if (leaf.isClosing) {
@@ -262,8 +260,8 @@ export default function DriedLeaves() {
             ? closingRect.bottom - 100 // land near the bottom
             : vh * 0.85
 
-          // Add last gentle sway during closing — still terombang-ambing sedikit
-          const closingSway = (1 - ease) * organicNoise(t * 0.6, leaf.id === 'A' ? 10 : 15) * 30
+          // Add last gentle sway during closing — still terombang-ambing pelan
+          const closingSway = (1 - ease) * organicNoise(t * 0.5, leaf.id === 'A' ? 10 : 15) * 15
 
           leaf.x = leaf.closingStartX + (targetX + closingSway - leaf.closingStartX) * ease
           leaf.y = leaf.closingStartY + (targetY - leaf.closingStartY) * ease
@@ -275,8 +273,8 @@ export default function DriedLeaves() {
           // Scale gently grows — coming forward towards the viewer
           leaf.scale = leaf.closingStartScale + (1.2 - leaf.closingStartScale) * ease
 
-          // Opacity warms as they arrive together — dari pudar jadi jelas
-          leaf.opacity = 0.85 + ease * 0.15
+          // Opacity warms as they arrive together — tetap transparan tapi lebih jelas
+          leaf.opacity = 0.6 + ease * 0.25
 
         } else {
           // ═══════════════════════════════════════════════════════════
@@ -286,20 +284,20 @@ export default function DriedLeaves() {
           // ═══════════════════════════════════════════════════════════
 
           // ─── Buoyancy system ───
-          const restY = vh * 0.3 // their natural floating altitude — lebih tinggi
-          const buoyancy = (leaf.y - restY) * -0.004
-          const gravity = 0.004 // gentle downward pull
+          const restY = vh * 0.35 // their natural floating altitude
+          const buoyancy = (leaf.y - restY) * -0.003
+          const gravity = 0.003 // gentle downward pull
 
           // Vertical: gravity pulls down, buoyancy pushes up
           leaf.vy += gravity + buoyancy
           // Organic vertical drift — breathing, like floating in warm air
-          leaf.vy += organicNoise(t * 0.35, leaf.id === 'A' ? 0 : 5) * 0.012
+          leaf.vy += organicNoise(t * 0.3, leaf.id === 'A' ? 0 : 5) * 0.008
           // Damping — slow, viscous air
-          leaf.vy *= 0.96
+          leaf.vy *= 0.97
           leaf.y += leaf.vy
 
           // Never reach the bottom — buoyancy keeps them floating
-          const maxFloatY = vh * 0.5
+          const maxFloatY = vh * 0.55
           if (leaf.y > maxFloatY) {
             leaf.y = maxFloatY
             leaf.vy = Math.min(0, leaf.vy)
@@ -310,47 +308,43 @@ export default function DriedLeaves() {
           }
 
           // ─── Horizontal drift — terombang-ambing angin ───
-          const baseX = leaf.id === 'A' ? vw * 0.2 : vw * 0.8
+          const baseX = leaf.id === 'A' ? vw * 0.25 : vw * 0.75
 
           // Target X shifts closer together as scroll progresses
           const soloX = baseX
-          const closeX = togetherX + (leaf.id === 'A' ? -50 : 50)
-          const targetBaseX = soloX + (closeX - soloX) * proximity * 0.5
+          const closeX = togetherX + (leaf.id === 'A' ? -40 : 40)
+          const targetBaseX = soloX + (closeX - soloX) * proximity * 0.6
 
-          // ═══ Dramatic wind sway ═══
-          // Kadang ke kanan, kadang ke kiri — angin berubah-ubah
-          const sway1 = organicNoise(t * 0.45, leaf.id === 'A' ? 1 : 6) * 60  // larger sway
-          const sway2 = organicNoise(t * 0.18, leaf.id === 'A' ? 2 : 7) * 35  // secondary sway
-          // Gust — angin kencang yang kadang datang
-          const gust = organicNoise(t * 0.08, 3) * 30 * leaf.swayDirection
-          // Occasional strong gust — angin yang tiba-tiba kencang
-          const strongGust = Math.sin(t * 0.05 + (leaf.id === 'A' ? 0 : 3)) * 20 * leaf.swayDirection
+          // Kadang ke kanan, kadang ke kiri — angin lembut, bukan badai
+          const sway1 = organicNoise(t * 0.4, leaf.id === 'A' ? 1 : 6) * 40  // gentle sway
+          const sway2 = organicNoise(t * 0.15, leaf.id === 'A' ? 2 : 7) * 20  // secondary
+          // Gust — angin kadang berhembus lebih kencang
+          const gust = organicNoise(t * 0.08, 3) * 15 * leaf.swayDirection
 
-          const targetX = targetBaseX + sway1 + sway2 + gust + strongGust
+          const targetX = targetBaseX + sway1 + sway2 + gust
 
           // Smooth approach to target — like being carried by air currents
-          leaf.vx += (targetX - leaf.x) * 0.006
-          leaf.vx *= 0.94 // viscous air damping
+          leaf.vx += (targetX - leaf.x) * 0.005
+          leaf.vx *= 0.95 // viscous air damping
           leaf.x += leaf.vx
 
           // Keep within bounds — ga keluar layar
-          leaf.x = Math.max(30, Math.min(vw - 50, leaf.x))
+          leaf.x = Math.max(20, Math.min(vw - 40, leaf.x))
 
-          // ─── Rotation — natural tumbling, influenced by movement ───
-          const moveRotation = leaf.vx * 4 // turning into the direction of drift
-          const breatheRotation = organicNoise(t * 0.5, leaf.id === 'A' ? 4 : 9) * 12
-          const tumbleRotation = Math.sin(t * 0.3 + (leaf.id === 'A' ? 0 : 2)) * 5
-          leaf.rotationVel += (moveRotation + breatheRotation + tumbleRotation - leaf.rotationVel) * 0.035
+          // ─── Rotation — gentle tilting, influenced by drift direction ───
+          const moveRotation = leaf.vx * 2.5 // tilting into the wind, not spinning
+          const breatheRotation = organicNoise(t * 0.5, leaf.id === 'A' ? 4 : 9) * 6
+          leaf.rotationVel += (moveRotation + breatheRotation - leaf.rotationVel) * 0.03
           leaf.rotation += leaf.rotationVel
 
-          // ─── Scale — forward drift, organic breathing ───
+          // ─── Scale — gentle breathing ───
           const forwardDrift = organicNoise(t * 0.25, leaf.id === 'A' ? 3 : 8)
-          const targetScale = 0.9 + forwardDrift * 0.4 + proximity * 0.15
-          leaf.scale += (targetScale - leaf.scale) * 0.025
+          const targetScale = 0.8 + forwardDrift * 0.3 + proximity * 0.1
+          leaf.scale += (targetScale - leaf.scale) * 0.02
 
-          // ─── Opacity — clearer when closer to viewer ───
-          const scaleNorm = (leaf.scale - 0.9) / 0.55
-          leaf.opacity = 0.6 + scaleNorm * 0.25 + proximity * 0.1
+          // ─── Opacity — translucent, elegant ───
+          const scaleNorm = (leaf.scale - 0.8) / 0.4
+          leaf.opacity = 0.4 + scaleNorm * 0.2 + proximity * 0.1
         }
 
         // Apply transform
