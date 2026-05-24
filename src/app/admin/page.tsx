@@ -392,6 +392,34 @@ export default function AdminPage() {
     window.open(waUrl, '_blank')
   }
 
+  const shareInstagram = async (guest: Guest) => {
+    const link = getGuestLink(guest.slug)
+    const displayName = getGuestDisplayName(guest)
+    const groomName = getVal(editedConfig, 'groom')
+    const brideName = getVal(editedConfig, 'bride')
+    const message = `✨ The Wedding of ${groomName} & ${brideName} ✨\n\nHai ${displayName}! 💛\nKami mengundang Anda untuk hadir di hari bahagia kami.\n\n📅 05 Juli 2026\n💌 Buka undangan:\n${link}\n\n#WeddingInvitation #${groomName.replace(/\s+/g, '')}${brideName.replace(/\s+/g, '')} #Nikah2026`
+    try {
+      await navigator.clipboard.writeText(message)
+      showToast('Template IG disalin! Paste di DM/caption Instagram')
+    } catch {
+      showToast('Gagal menyalin template')
+    }
+  }
+
+  const shareTikTok = async (guest: Guest) => {
+    const link = getGuestLink(guest.slug)
+    const displayName = getGuestDisplayName(guest)
+    const groomName = getVal(editedConfig, 'groom')
+    const brideName = getVal(editedConfig, 'bride')
+    const message = `💌 You're Invited! 💌\n\nHey ${displayName}!\n${groomName} & ${brideName} mau nikah nih! 💍\n\n📅 05 Juli 2026\n🔗 Cek undangannya:\n${link}\n\nDatang yaa! 🥳✨\n\n#wedding #nikah #undanganpernikahan #${groomName.replace(/\s+/g, '')}${brideName.replace(/\s+/g, '')}`
+    try {
+      await navigator.clipboard.writeText(message)
+      showToast('Template TikTok disalin! Paste di DM/caption TikTok')
+    } catch {
+      showToast('Gagal menyalin template')
+    }
+  }
+
   // Helper to render a config field
   const renderField = (fieldKey: string) => {
     const field = CONFIG_FIELDS.find(f => f.key === fieldKey)
@@ -667,9 +695,11 @@ export default function AdminPage() {
                           {getGuestLink(guest.slug)}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex gap-1.5">
+                          <div className="flex gap-1.5 flex-wrap">
                             <button onClick={() => copyGuestLink(guest.slug)} className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: 'rgba(201,169,110,0.2)', color: 'var(--gold-light)' }} title="Salin link">Salin</button>
-                            <button onClick={() => shareWhatsApp(guest)} className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: '#25D366', color: 'white' }} title="Bagikan via WhatsApp">WhatsApp</button>
+                            <button onClick={() => shareWhatsApp(guest)} className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: '#25D366', color: 'white' }} title="Bagikan via WhatsApp">WA</button>
+                            <button onClick={() => shareInstagram(guest)} className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)', color: 'white' }} title="Copy template Instagram">IG</button>
+                            <button onClick={() => shareTikTok(guest)} className="px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: '#000000', color: 'white' }} title="Copy template TikTok">TT</button>
                             <button onClick={() => deleteGuest(guest.id)} className="px-2 py-1.5 rounded text-xs cursor-pointer hover:opacity-80" style={{ background: 'rgba(248,113,113,0.2)', color: '#f87171' }} title="Hapus">✕</button>
                           </div>
                         </td>
@@ -698,9 +728,11 @@ export default function AdminPage() {
                     </div>
                     <button onClick={() => deleteGuest(guest.id)} className="px-2 py-1 rounded text-xs cursor-pointer hover:opacity-80 flex-shrink-0" style={{ background: 'rgba(248,113,113,0.2)', color: '#f87171' }}>✕</button>
                   </div>
-                  <div className="flex gap-1.5">
-                    <button onClick={() => copyGuestLink(guest.slug)} className="flex-1 py-1.5 rounded text-xs cursor-pointer hover:opacity-80 text-center" style={{ background: 'rgba(201,169,110,0.2)', color: 'var(--gold-light)' }}>Salin Link</button>
-                    <button onClick={() => shareWhatsApp(guest)} className="flex-1 py-1.5 rounded text-xs cursor-pointer hover:opacity-80 text-center" style={{ background: '#25D366', color: 'white' }}>WhatsApp</button>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button onClick={() => copyGuestLink(guest.slug)} className="py-1.5 rounded text-xs cursor-pointer hover:opacity-80 text-center" style={{ background: 'rgba(201,169,110,0.2)', color: 'var(--gold-light)' }}>Salin Link</button>
+                    <button onClick={() => shareWhatsApp(guest)} className="py-1.5 rounded text-xs cursor-pointer hover:opacity-80 text-center" style={{ background: '#25D366', color: 'white' }}>WhatsApp</button>
+                    <button onClick={() => shareInstagram(guest)} className="py-1.5 rounded text-xs cursor-pointer hover:opacity-80 text-center" style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)', color: 'white' }}>Instagram</button>
+                    <button onClick={() => shareTikTok(guest)} className="py-1.5 rounded text-xs cursor-pointer hover:opacity-80 text-center" style={{ background: '#000000', color: 'white' }}>TikTok</button>
                   </div>
                 </div>
               ))}
