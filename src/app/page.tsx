@@ -1823,7 +1823,10 @@ function ClosingSection({ onGoToInfo }: { onGoToInfo?: () => void }) {
             gsap.to(section, { opacity: 1, duration: 1, ease: 'power2.out' })
 
             // ═══ PHASE 1: HANDWRITING ═══
+            // Make text containers visible (they start at opacity:0 to prevent text flash)
+            if (titleRef.current) gsap.set(titleRef.current, { opacity: 1 })
             const titleEnd = closingHandwriting(titleRef.current, 0.035, 0.1, 0.3)
+            if (subtitleRef.current) gsap.set(subtitleRef.current, { opacity: 1 })
             const subtitleEnd = closingHandwriting(subtitleRef.current, 0.03, 0.09, titleEnd + 0.5)
 
             // Arabic appears gently — no handwriting
@@ -1831,6 +1834,7 @@ function ClosingSection({ onGoToInfo }: { onGoToInfo?: () => void }) {
               gsap.to(arabicRef.current, { opacity: 1, duration: 1.2, ease: 'power2.out', delay: subtitleEnd + 0.3 })
             }
 
+            if (transRef.current) gsap.set(transRef.current, { opacity: 1 })
             const transEnd = closingHandwriting(transRef.current, 0.025, 0.08, subtitleEnd + 1.0)
 
             // Divider appears
@@ -1838,7 +1842,9 @@ function ClosingSection({ onGoToInfo }: { onGoToInfo?: () => void }) {
               gsap.to(dividerRef.current, { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(2)', delay: transEnd + 0.3 })
             }
 
+            if (footerRef.current) gsap.set(footerRef.current, { opacity: 1 })
             const footerEnd = closingHandwriting(footerRef.current, 0.035, 0.1, transEnd + 0.8)
+            if (finalRef.current) gsap.set(finalRef.current, { opacity: 1 })
             const finalEnd = closingHandwriting(finalRef.current, 0.06, 0.15, footerEnd + 0.8)
 
             // ═══ PHASE 2: DUST DISSOLVE ═══
@@ -1905,12 +1911,12 @@ function ClosingSection({ onGoToInfo }: { onGoToInfo?: () => void }) {
 
       <div className="relative z-10 max-w-2xl mx-auto">
         {/* Title — handwriting reveal, then dust dissolve */}
-        <div ref={titleRef} className="text-lg sm:text-xl leading-relaxed mb-8" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', fontStyle: 'italic' }}>
+        <div ref={titleRef} className="text-lg sm:text-xl leading-relaxed mb-8" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', fontStyle: 'italic', opacity: 0 }}>
           Dan seperti semua cerita indah yang dituliskan semesta, kisah kami baru saja dimulai.
         </div>
 
         {/* Subtitle — handwriting, then dust */}
-        <div ref={subtitleRef} className="text-sm sm:text-base leading-relaxed mb-10" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', opacity: 0.85, fontStyle: 'italic' }}>
+        <div ref={subtitleRef} className="text-sm sm:text-base leading-relaxed mb-10" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', opacity: 0, fontStyle: 'italic' }}>
           Terima kasih telah menjadi bagian dari perjalanan kecil kami menuju selamanya.
         </div>
 
@@ -1924,7 +1930,7 @@ function ClosingSection({ onGoToInfo }: { onGoToInfo?: () => void }) {
           >
             بارك الله لكما وبارك عليكما وجمع بينكما في خير
           </p>
-          <div ref={transRef} className="text-xs italic" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--gold)' }}>
+          <div ref={transRef} className="text-xs italic" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--gold)', opacity: 0 }}>
             Barakallahu lakuma wa baraka&lsquo;alaikuma wa jama&lsquo;a bainakuma fi khair.
           </div>
         </div>
@@ -1935,12 +1941,12 @@ function ClosingSection({ onGoToInfo }: { onGoToInfo?: () => void }) {
         </div>
 
         {/* Footer line — handwriting, then dust */}
-        <div ref={footerRef} className="text-sm mb-16" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', opacity: 0.6, fontStyle: 'italic' }}>
+        <div ref={footerRef} className="text-sm mb-16" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', opacity: 0, fontStyle: 'italic' }}>
           Forever starts with Bismillah.
         </div>
 
         {/* Final emotional line — handwriting, then dust */}
-        <div ref={finalRef} className="text-2xl sm:text-3xl min-h-[2em]" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', fontWeight: 300, fontStyle: 'italic' }}>
+        <div ref={finalRef} className="text-2xl sm:text-3xl min-h-[2em]" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#ffffff', fontWeight: 300, fontStyle: 'italic', opacity: 0 }}>
           Cerita kami belum selesai...
         </div>
 
