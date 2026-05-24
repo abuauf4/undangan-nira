@@ -411,7 +411,7 @@ export default function AdminPage() {
     const displayName = getGuestDisplayName(guest)
     const groomName = getVal(editedConfig, 'groom')
     const brideName = getVal(editedConfig, 'bride')
-    const message = `Assalamu'alaikum ${displayName} 🤍\n\n💌 ${groomName} & ${brideName} mau nikah nih! 💍\n\n📅 05 Juli 2026\n🔗 Cek undangannya:\n${link}\n\nMerupakan kebahagiaan bagi kami apabila Anda berkenan hadir dan memberikan doa restu. 🙏✨\n\n#wedding #nikah #undanganpernikahan #${groomName.replace(/\s+/g, '')}${brideName.replace(/\s+/g, '')}`
+    const message = `Assalamu'alaikum ${displayName} 🤍\n\n💌 Dengan penuh sukacita, kami mengundang Anda dalam acara pernikahan ${groomName} & ${brideName} 💍\n\n📅 05 Juli 2026\n🔗 Buka undangan:\n${link}\n\nMerupakan kebahagiaan bagi kami apabila Anda berkenan hadir dan memberikan doa restu. 🙏✨\n\n#wedding #nikah #undanganpernikahan #${groomName.replace(/\s+/g, '')}${brideName.replace(/\s+/g, '')}`
     try {
       await navigator.clipboard.writeText(message)
       showToast('Template TikTok disalin! Paste di DM/caption TikTok')
