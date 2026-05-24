@@ -65,79 +65,6 @@ function CursorFollower() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   1b. CHAPTER DIVIDER — Cinematic interstitial between chapters
-   Thin gold lines above and below, script font, very subtle
-   Like a chapter break in a film or a book
-   ═══════════════════════════════════════════════════════════ */
-function ChapterDivider({ title, index }: { title: string; index: number }) {
-  const dividerRef = useRef<HTMLDivElement>(null)
-  const lineTopRef = useRef<HTMLDivElement>(null)
-  const lineBottomRef = useRef<HTMLDivElement>(null)
-  const textRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!dividerRef.current) return
-
-    // Animate the gold lines drawing in and text fading in
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: dividerRef.current,
-        start: 'top 80%',
-        toggleActions: 'play none none none',
-      },
-    })
-
-    // Top line draws from center outward
-    if (lineTopRef.current) {
-      gsap.set(lineTopRef.current, { scaleX: 0, transformOrigin: 'center center' })
-      tl.to(lineTopRef.current, { scaleX: 1, duration: 1.2, ease: 'power2.inOut' })
-    }
-
-    // Text fades in after line draws
-    if (textRef.current) {
-      gsap.set(textRef.current, { opacity: 0, y: 5 })
-      tl.to(textRef.current, { opacity: 0.3, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.4')
-    }
-
-    // Bottom line draws from center outward
-    if (lineBottomRef.current) {
-      gsap.set(lineBottomRef.current, { scaleX: 0, transformOrigin: 'center center' })
-      tl.to(lineBottomRef.current, { scaleX: 1, duration: 1.2, ease: 'power2.inOut' }, '-=0.8')
-    }
-  }, [])
-
-  return (
-    <div
-      ref={dividerRef}
-      data-section={`chapter-${index}`}
-      className="flex flex-col items-center justify-center py-16"
-      style={{ background: 'var(--dark-bg)' }}
-    >
-      {/* Top gold divider line */}
-      <div
-        ref={lineTopRef}
-        className="w-24 h-[1px]"
-        style={{ background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.4 }}
-      />
-      {/* Chapter name */}
-      <div
-        ref={textRef}
-        className="my-4 text-sm tracking-[0.3em] uppercase"
-        style={{ fontFamily: 'var(--font-script)', color: 'var(--gold)', opacity: 0.3 }}
-      >
-        {title}
-      </div>
-      {/* Bottom gold divider line */}
-      <div
-        ref={lineBottomRef}
-        className="w-24 h-[1px]"
-        style={{ background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.4 }}
-      />
-    </div>
-  )
-}
-
-/* ═══════════════════════════════════════════════════════════
    1c. STORY PROGRESS — Thin gold line on left side
    Fills vertically based on scroll progress
    Very subtle — barely there track, thin gold fill
@@ -2154,7 +2081,6 @@ function HomeInner() {
     const pxPerMsCountdown = pxPerMs * 2
     const pxPerMsAcara = pxPerMs * 2
     const pxPerMsRSVP = pxPerMs * 2
-    const pxPerMsChapter = pxPerMs * 3 // Cruise through chapter transitions fast
 
     // ─── Section-aware speed using getBoundingClientRect() ───
     let diaryIntroElRef: Element | null | undefined = undefined
@@ -2203,18 +2129,6 @@ function HomeInner() {
       return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.15
     }
 
-    const isAtChapterTransition = (): boolean => {
-      // Check if viewport center is over a chapter divider section
-      const chapterEls = document.querySelectorAll('[data-section^="chapter-"]')
-      for (const el of chapterEls) {
-        const rect = el.getBoundingClientRect()
-        if (rect.top <= window.innerHeight * 0.5 && rect.bottom >= window.innerHeight * 0.3) {
-          return true
-        }
-      }
-      return false
-    }
-
     // ─── State ───
     let cinematicLock = false
     let accumulated = 0
@@ -2243,7 +2157,6 @@ function HomeInner() {
       }
 
       const atDiaryIntro = isAtDiaryIntro()
-      const atChapter = isAtChapterTransition()
       const pastCountdown = isPastCountdown()
       const pastAcara = isPastAcara()
       const pastGallery = isPastGallery()
@@ -2256,9 +2169,7 @@ function HomeInner() {
       }
 
       let speed: number
-      if (atChapter) {
-        speed = pxPerMsChapter
-      } else if (closingVisible) {
+      if (closingVisible) {
         speed = pxPerMs * 1.5
       } else if (pastRSVP) {
         speed = pxPerMsRSVP
@@ -2414,14 +2325,10 @@ function HomeInner() {
 
             {/* Story sections only */}
             <BismillahSection />
-            <ChapterDivider title="Dua Jiwa" index={1} />
             <CoupleSection />
-            <ChapterDivider title="Catatan Kami" index={2} />
             <DiaryIntroSection />
             <DiaryStorySection />
-            <ChapterDivider title="Momen" index={3} />
             <GallerySection />
-            <ChapterDivider title="Akhir" index={4} />
             <ClosingSection onGoToInfo={() => handleViewChoose('info')} />
             <FooterSection />
           </main>
