@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
-const ADMIN_PASSWORD = 'nauka2026'
+// Password is now validated server-side via /api/admin/auth
+// No password is stored in client-side code
 
 interface WeddingConfig {
   [key: string]: string
@@ -153,10 +154,23 @@ export default function AdminPage() {
   const [seeding, setSeeding] = useState(false)
   const [toast, setToast] = useState('')
 
-  // Check sessionStorage for existing auth
+  // Check existing auth on mount — verify session token with server
   useEffect(() => {
-    if (sessionStorage.getItem('admin-auth') === 'true') {
-      setAuthenticated(true)
+    const token = sessionStorage.getItem('admin-token')
+    if (token) {
+      // Verify token with server
+      fetch('/api/admin/auth', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.authenticated) {
+            setAuthenticated(true)
+          } else {
+            sessionStorage.removeItem('admin-token')
+          }
+        })
+        .catch(() => sessionStorage.removeItem('admin-token'))
     }
   }, [])
 
@@ -174,13 +188,27 @@ export default function AdminPage() {
     setTimeout(() => setToast(''), 3000)
   }
 
-  const handleLogin = () => {
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem('admin-auth', 'true')
-      setAuthenticated(true)
-    } else {
-      showToast('Password salah!')
+  const [loginLoading, setLoginLoading] = useState(false)
+
+  const handleLogin = async () => {
+    setLoginLoading(true)
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        sessionStorage.setItem('admin-token', data.token)
+        setAuthenticated(true)
+      } else {
+        showToast(data.error || 'Password salah!')
+      }
+    } catch {
+      showToast('Gagal terhubung ke server')
     }
+    setLoginLoading(false)
   }
 
   const fetchConfig = useCallback(async () => {
@@ -480,10 +508,11 @@ export default function AdminPage() {
           />
           <button
             onClick={handleLogin}
-            className="w-full mt-4 px-4 py-3 rounded-lg text-sm font-medium cursor-pointer transition-all hover:opacity-90"
+            disabled={loginLoading || !password}
+            className="w-full mt-4 px-4 py-3 rounded-lg text-sm font-medium cursor-pointer transition-all hover:opacity-90 disabled:opacity-50"
             style={{ background: 'var(--gold)', color: '#1a1410' }}
           >
-            Masuk
+            {loginLoading ? 'Memverifikasi...' : 'Masuk'}
           </button>
         </div>
       </div>
@@ -526,7 +555,7 @@ export default function AdminPage() {
             Undangan Nira — Admin
           </h1>
           <button
-            onClick={() => { sessionStorage.removeItem('admin-auth'); setAuthenticated(false) }}
+            onClick={() => { sessionStorage.removeItem('admin-token'); setAuthenticated(false) }}
             className="text-xs px-3 py-1.5 rounded border cursor-pointer hover:opacity-80 flex-shrink-0 ml-2"
             style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}
           >
