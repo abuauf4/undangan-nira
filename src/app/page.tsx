@@ -1517,9 +1517,7 @@ function GallerySection() {
   }
 
   return (
-    <section ref={sectionRef} data-section="gallery" className="diary-paper-bg cinema-depth py-28 px-6 relative overflow-hidden" style={{ opacity: 0 }}>
-      {/* Dark vignette overlay — focus attention on photos like a gallery spotlight */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, transparent 35%, rgba(26,21,16,0.5) 100%)', zIndex: 2 }} />
+    <section ref={sectionRef} data-section="gallery" className="diary-paper-bg py-28 px-6 relative overflow-hidden" style={{ opacity: 0 }}>
       {/* Background handwriting silhouette — Quran verse about love flowing behind photos */}
       <div
         ref={bgTextRef}
