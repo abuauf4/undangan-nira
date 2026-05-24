@@ -226,7 +226,9 @@ function BismillahSection() {
   return (
     <section ref={sectionRef} data-section="bismillah" className="cinema-dark-section cinema-vignette cinema-bloom cinema-dust py-28 px-6 text-center relative overflow-hidden" style={{ opacity: 0 }}>
       {/* Sacred mosque light — golden rays from above, like light through mosque windows */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(201,169,110,0.15) 0%, transparent 60%)' }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% -5%, rgba(201,169,110,0.35) 0%, rgba(201,169,110,0.12) 30%, transparent 70%)' }} />
+      {/* Light shaft accents — diagonal golden beams from above */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(165deg, rgba(201,169,110,0.08) 0%, transparent 25%, transparent 40%, rgba(201,169,110,0.05) 45%, transparent 60%)' }} />
       <div className="max-w-2xl mx-auto relative z-10">
         <p
           ref={arabicRef}
@@ -428,7 +430,9 @@ function CoupleSection() {
   return (
     <section ref={sectionRef} data-section="couple" className="cinema-dark-section cinema-vignette cinema-bloom cinema-dust py-28 px-6 relative overflow-hidden" style={{ opacity: 0 }}>
       {/* Candlelit intimacy — warm ambient glow from center, deeper vignette edges */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(201,169,110,0.1) 0%, rgba(26,21,16,0.3) 70%, rgba(26,21,16,0.6) 100%)', animation: 'candleFlicker 6s ease-in-out infinite' }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 45%, rgba(201,169,110,0.2) 0%, rgba(201,169,110,0.06) 35%, rgba(26,21,16,0.4) 70%, rgba(26,21,16,0.7) 100%)', animation: 'candleFlicker 6s ease-in-out infinite' }} />
+      {/* Warm side light — like candlelight from left */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 15% 60%, rgba(232,200,120,0.1) 0%, transparent 40%)' }} />
 
       <div className="max-w-4xl mx-auto text-center relative z-10">
         <h2 className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold-light)' }}>
@@ -587,8 +591,10 @@ function DiaryIntroSection() {
       className="diary-paper-bg diary-lines diary-margin cinema-depth py-28 px-6 text-center relative overflow-hidden"
       style={{ opacity: 0 }}
     >
-      {/* Paper texture focus — subtle sepia overlay for ink-drop feeling */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(180,160,120,0.05)' }} />
+      {/* Paper texture focus — warm sepia overlay for ink-drop feeling */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(180,160,120,0.12)' }} />
+      {/* Aged paper warm corners — vignette with warm brown tones */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(139,100,50,0.15) 100%)' }} />
       {/* Diary entry — year + subtitle side by side */}
       <div className="max-w-xl mx-auto relative">
         {/* Year + Subtitle — side by side, handwriting reveal */}
@@ -991,8 +997,10 @@ function DiaryStorySection() {
 
   return (
     <section ref={sectionRef} data-section="diaryStory" className="diary-paper-bg diary-lines diary-margin cinema-depth py-28 px-6 relative" style={{ opacity: 0 }}>
-      {/* Warm reading-lamp glow from top-left */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 20% 10%, rgba(201,169,110,0.08) 0%, transparent 50%)' }} />
+      {/* Warm reading-lamp glow from top-left — like a desk lamp illuminating the diary */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 15% 10%, rgba(232,200,120,0.2) 0%, rgba(201,169,110,0.06) 30%, transparent 55%)' }} />
+      {/* Soft shadow on right side — the unlit part of the desk */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent 60%, rgba(26,21,16,0.15) 100%)' }} />
       {/* Progress bar — thin gold line at top */}
       <div
         ref={progressRef}
@@ -1510,8 +1518,8 @@ function GallerySection() {
 
   return (
     <section ref={sectionRef} data-section="gallery" className="diary-paper-bg cinema-depth py-28 px-6 relative overflow-hidden" style={{ opacity: 0 }}>
-      {/* Dark vignette overlay — focus attention on photos */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(26,21,16,0.3) 100%)', zIndex: 2 }} />
+      {/* Dark vignette overlay — focus attention on photos like a gallery spotlight */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, transparent 35%, rgba(26,21,16,0.5) 100%)', zIndex: 2 }} />
       {/* Background handwriting silhouette — Quran verse about love flowing behind photos */}
       <div
         ref={bgTextRef}
