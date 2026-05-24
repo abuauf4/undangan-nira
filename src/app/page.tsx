@@ -2140,7 +2140,7 @@ function HomeInner() {
     const isClosingReadyToLock = (): boolean => {
       if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
       if (!closingElRef) return false
-      return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.15
+      return closingElRef.getBoundingClientRect().top <= 0
     }
 
     // ─── State ───
