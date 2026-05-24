@@ -397,7 +397,7 @@ export default function AdminPage() {
     const displayName = getGuestDisplayName(guest)
     const groomName = getVal(editedConfig, 'groom')
     const brideName = getVal(editedConfig, 'bride')
-    const message = `✨ The Wedding of ${groomName} & ${brideName} ✨\n\nHai ${displayName}! 💛\nKami mengundang Anda untuk hadir di hari bahagia kami.\n\n📅 05 Juli 2026\n💌 Buka undangan:\n${link}\n\n#WeddingInvitation #${groomName.replace(/\s+/g, '')}${brideName.replace(/\s+/g, '')} #Nikah2026`
+    const message = `Assalamu'alaikum ${displayName} 🤍\n\n✨ The Wedding of ${groomName} & ${brideName} ✨\nKami mengundang Anda untuk hadir di hari bahagia kami.\n\n📅 05 Juli 2026\n💌 Buka undangan:\n${link}\n\nMerupakan kebahagiaan bagi kami apabila Anda berkenan hadir. 🙏\n\n#WeddingInvitation #${groomName.replace(/\s+/g, '')}${brideName.replace(/\s+/g, '')} #Nikah2026`
     try {
       await navigator.clipboard.writeText(message)
       showToast('Template IG disalin! Paste di DM/caption Instagram')
@@ -411,7 +411,7 @@ export default function AdminPage() {
     const displayName = getGuestDisplayName(guest)
     const groomName = getVal(editedConfig, 'groom')
     const brideName = getVal(editedConfig, 'bride')
-    const message = `💌 You're Invited! 💌\n\nHey ${displayName}!\n${groomName} & ${brideName} mau nikah nih! 💍\n\n📅 05 Juli 2026\n🔗 Cek undangannya:\n${link}\n\nDatang yaa! 🥳✨\n\n#wedding #nikah #undanganpernikahan #${groomName.replace(/\s+/g, '')}${brideName.replace(/\s+/g, '')}`
+    const message = `Assalamu'alaikum ${displayName} 🤍\n\n💌 ${groomName} & ${brideName} mau nikah nih! 💍\n\n📅 05 Juli 2026\n🔗 Cek undangannya:\n${link}\n\nMerupakan kebahagiaan bagi kami apabila Anda berkenan hadir dan memberikan doa restu. 🙏✨\n\n#wedding #nikah #undanganpernikahan #${groomName.replace(/\s+/g, '')}${brideName.replace(/\s+/g, '')}`
     try {
       await navigator.clipboard.writeText(message)
       showToast('Template TikTok disalin! Paste di DM/caption TikTok')
