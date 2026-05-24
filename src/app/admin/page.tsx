@@ -33,6 +33,7 @@ interface Guest {
   suffix: string
   slug: string
   code: string
+  phone: string
   createdAt: string
 }
 
@@ -146,6 +147,7 @@ export default function AdminPage() {
   const [newGuestName, setNewGuestName] = useState('')
   const [newGuestPrefix, setNewGuestPrefix] = useState('')
   const [newGuestSuffix, setNewGuestSuffix] = useState('')
+  const [newGuestPhone, setNewGuestPhone] = useState('')
   const [addingGuest, setAddingGuest] = useState(false)
   const [saving, setSaving] = useState(false)
   const [seeding, setSeeding] = useState(false)
@@ -309,7 +311,7 @@ export default function AdminPage() {
       const res = await fetch('/api/guests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newGuestName.trim(), prefix: newGuestPrefix, suffix: newGuestSuffix }),
+        body: JSON.stringify({ name: newGuestName.trim(), prefix: newGuestPrefix, suffix: newGuestSuffix, phone: newGuestPhone.trim() }),
       })
       if (res.ok) {
         const guest = await res.json()
@@ -317,6 +319,7 @@ export default function AdminPage() {
         setNewGuestName('')
         setNewGuestPrefix('')
         setNewGuestSuffix('')
+        setNewGuestPhone('')
         showToast('Tamu ditambahkan!')
       } else {
         showToast('Gagal menambahkan tamu')
@@ -340,7 +343,7 @@ export default function AdminPage() {
 
   const getGuestLink = (slug: string) => {
     const base = window.location.origin
-    return `${base}/to/${slug}`
+    return `${base}/${slug}`
   }
 
   const copyGuestLink = async (slug: string) => {
@@ -367,7 +370,11 @@ export default function AdminPage() {
     const groomName = getVal(editedConfig, 'groom')
     const brideName = getVal(editedConfig, 'bride')
     const message = `Assalamu'alaikum ${displayName} 🤍\n\nKami mengundang Anda dengan penuh sukacita untuk hadir dalam acara pernikahan kami.\n\n${groomName} & ${brideName}\n05 Juli 2026\n\n📎 Buka undangan Anda di:\n${link}\n\nMerupakan kebahagiaan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.\n\nTerima kasih 🙏✨`
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
+    // If phone number is available, send directly to that number
+    const phone = guest.phone?.replace(/^0/, '62').replace(/[^0-9]/g, '')
+    const waUrl = phone
+      ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+      : `https://wa.me/?text=${encodeURIComponent(message)}`
     window.open(waUrl, '_blank')
   }
 
@@ -603,6 +610,15 @@ export default function AdminPage() {
                     Preview: {newGuestPrefix && <span>{newGuestPrefix} </span>}{newGuestName || 'Nama Tamu'}{newGuestSuffix && <span> {newGuestSuffix}</span>}
                   </div>
                 </div>
+                {/* Row 3: Phone */}
+                <input
+                  type="text"
+                  value={newGuestPhone}
+                  onChange={(e) => setNewGuestPhone(e.target.value)}
+                  placeholder="No. WhatsApp (opsional, misal: 08123456789)"
+                  className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none"
+                  style={{ background: 'rgba(250,245,230,0.08)', borderColor: 'rgba(201,169,110,0.3)', color: 'var(--cream)' }}
+                />
                 <button
                   onClick={addGuest}
                   disabled={addingGuest || !newGuestName.trim()}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useParams } from 'next/navigation'
 
 interface CoverSectionProps {
   onOpen: () => void
@@ -10,19 +10,33 @@ interface CoverSectionProps {
 
 export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps) {
   const searchParams = useSearchParams()
-  const [guestName, setGuestName] = useState(searchParams.get('to') || '')
+  const params = useParams()
+  const slugParam = params?.slug as string | undefined
+
+  const [guestName, setGuestName] = useState<string | null>(null)
   const [guestPrefix, setGuestPrefix] = useState('')
   const [guestSuffix, setGuestSuffix] = useState('')
-  const [isOpening, setIsOpening] = useState(false)
-  const [phase, setPhase] = useState<'idle' | 'leaning' | 'blooming' | 'breathing' | 'dissolving' | 'darkness'>('idle')
-  const containerRef = useRef<HTMLDivElement>(null)
-  const bgRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
-  const petalContainerRef = useRef<HTMLDivElement>(null)
-  const mouseRef = useRef({ x: 0, y: 0 })
+  const [guestLoaded, setGuestLoaded] = useState(false)
 
-  // Resolve guest slug/code to name (personalized URL: /to/nama-tamu)
+  // Fetch guest name from slug path, query params, or fallback to ?to=
   useEffect(() => {
+    // Priority 1: Slug-based URL path (e.g. /budi-santoso)
+    if (slugParam) {
+      fetch(`/api/guests/${slugParam}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.name) {
+            setGuestPrefix(data.prefix || '')
+            setGuestName(data.name)
+            setGuestSuffix(data.suffix || '')
+          }
+          setGuestLoaded(true)
+        })
+        .catch(() => setGuestLoaded(true))
+      return
+    }
+
+    // Priority 2: Query param ?guestSlug= or ?guest= (code-based lookup)
     const guestSlug = searchParams.get('guestSlug')
     const guestCode = searchParams.get('guest')
 
@@ -31,25 +45,43 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (data?.name) {
+            setGuestPrefix(data.prefix || '')
             setGuestName(data.name)
-            if (data.prefix) setGuestPrefix(data.prefix)
-            if (data.suffix) setGuestSuffix(data.suffix)
+            setGuestSuffix(data.suffix || '')
           }
+          setGuestLoaded(true)
         })
-        .catch(() => {})
-    } else if (guestCode) {
+        .catch(() => setGuestLoaded(true))
+      return
+    }
+
+    if (guestCode) {
       fetch(`/api/guests/lookup?code=${encodeURIComponent(guestCode)}`)
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (data?.name) {
+            setGuestPrefix(data.prefix || '')
             setGuestName(data.name)
-            if (data.prefix) setGuestPrefix(data.prefix)
-            if (data.suffix) setGuestSuffix(data.suffix)
+            setGuestSuffix(data.suffix || '')
           }
+          setGuestLoaded(true)
         })
-        .catch(() => {})
+        .catch(() => setGuestLoaded(true))
+      return
     }
-  }, [searchParams])
+
+    // Priority 3: Legacy ?to= query param (backward compatible)
+    setGuestName(searchParams.get('to'))
+    setGuestLoaded(true)
+  }, [slugParam, searchParams])
+
+  const [isOpening, setIsOpening] = useState(false)
+  const [phase, setPhase] = useState<'idle' | 'leaning' | 'blooming' | 'breathing' | 'dissolving' | 'darkness'>('idle')
+  const containerRef = useRef<HTMLDivElement>(null)
+  const bgRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const petalContainerRef = useRef<HTMLDivElement>(null)
+  const mouseRef = useRef({ x: 0, y: 0 })
 
   // Parallax on mouse move (desktop only)
   useEffect(() => {
@@ -370,7 +402,7 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
           05 . 07 . 2026
         </p>
 
-        {/* Guest name from URL param */}
+        {/* Guest name — supports slug path, guestSlug/guest query, and legacy ?to= */}
         <div className="mb-10">
           <p
             className="text-[10px] sm:text-xs tracking-[0.25em] uppercase mb-1"
