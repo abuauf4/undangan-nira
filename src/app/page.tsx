@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createPortal } from 'react-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -8,6 +9,7 @@ import DriedLeaves from '@/components/DriedLeaves'
 import Preloader from '@/components/Preloader'
 import SmoothScroll from '@/components/SmoothScroll'
 import CoverSectionComponent from '@/components/CoverSection'
+import CoverHub from '@/components/CoverHub'
 import MusicPlayerComponent from '@/components/MusicPlayer'
 import GuestWishes from '@/components/GuestWishes'
 import RSVPSection from '@/components/RSVPSection'
@@ -15,22 +17,13 @@ import DigitalEnvelope from '@/components/DigitalEnvelope'
 import ScrollToTop from '@/components/ScrollToTop'
 import { fadeIn, slideIn, scaleIn, initCursorFollower, prefersReducedMotion } from '@/lib/animations'
 import { useWeddingConfig, type WeddingData } from '@/hooks/useWeddingConfig'
+import { getWeddingData, setWeddingData } from '@/lib/wedding-data'
+import { handwritingReveal } from '@/lib/handwriting-reveal'
+import { useCountdown } from '@/hooks/useCountdown'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
 }
-
-/* ═══════════════════════════════════════════════════════════
-   WEDDING DATA
-   Falls back to hardcoded defaults, overridden by DB config at runtime.
-   Section components read from getWeddingData() which returns the latest DB values.
-   ═══════════════════════════════════════════════════════════ */
-import { getDefaultData, buildWeddingData, type WeddingData } from '@/hooks/useWeddingConfig'
-
-// Module-level reactive state — updated by Home() from API
-let _weddingData: WeddingData = getDefaultData()
-export function getWeddingData() { return _weddingData }
-export function setWeddingData(data: WeddingData) { _weddingData = data }
 
 /* ═══════════════════════════════════════════════════════════
    AUTO-SCROLL NOTE:
@@ -41,83 +34,6 @@ export function setWeddingData(data: WeddingData) { _weddingData = data }
    No pause = no deadlock from ScrollTrigger.refresh() after diary pin removal.
    Auto-scroll starts 10 seconds after cover opens.
    ═══════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════
-   COUNTDOWN HOOK
-   ═══════════════════════════════════════════════════════════ */
-function useCountdown(targetDate: string) {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
-
-  useEffect(() => {
-    const target = new Date(targetDate).getTime()
-    const interval = setInterval(() => {
-      const now = new Date().getTime()
-      const diff = target - now
-      if (diff <= 0) {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
-        clearInterval(interval)
-        return
-      }
-      setTimeLeft({
-        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-        minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((diff % (1000 * 60)) / 1000),
-      })
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [targetDate])
-
-  return timeLeft
-}
-
-/* ═══════════════════════════════════════════════════════════
-   HANDWRITING REVEAL — shared utility
-   Ink flowing onto paper, character by character
-   FIXED: Faster stagger 0.022, charDuration 0.08
-   ═══════════════════════════════════════════════════════════ */
-function handwritingReveal(
-  el: HTMLDivElement,
-  stagger: number = 0.022,
-  charDuration: number = 0.08,
-  delay: number = 0,
-) {
-  if (!el) return
-  const fullText = el.textContent || ''
-  el.innerHTML = ''
-
-  const allChars: HTMLSpanElement[] = []
-  const words = fullText.split(' ')
-  words.forEach((word, wi) => {
-    const ws = document.createElement('span')
-    ws.style.cssText = 'white-space:nowrap;display:inline;'
-    for (let j = 0; j < word.length; j++) {
-      const cs = document.createElement('span')
-      cs.className = 'hw-char'
-      cs.style.cssText = 'display:inline-block;will-change:opacity,transform;opacity:0;transform:translateY(3px) rotate(-2deg);min-width:0.08em;'
-      cs.textContent = word[j]
-      ws.appendChild(cs)
-      allChars.push(cs)
-    }
-    el.appendChild(ws)
-    if (wi < words.length - 1) {
-      const sp = document.createElement('span')
-      sp.innerHTML = '\u00A0'
-      sp.style.display = 'inline'
-      el.appendChild(sp)
-    }
-  })
-
-  gsap.to(allChars, {
-    opacity: 1,
-    y: 0,
-    rotation: 0,
-    duration: charDuration,
-    stagger,
-    ease: 'power2.out',
-    delay,
-  })
-}
 
 /* ═══════════════════════════════════════════════════════════
    1. CURSOR FOLLOWER — Gold dot, desktop only, barely there
@@ -1719,7 +1635,7 @@ function GallerySection() {
    Font: Cormorant Garamond for all white text, Amiri for Arabic, Inter for transliteration
    ═══════════════════════════════════════════════════════════ */
 
-function ClosingSection() {
+function ClosingSection({ onGoToInfo }: { onGoToInfo?: () => void }) {
   const sectionRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLDivElement>(null)
   const subtitleRef = useRef<HTMLDivElement>(null)
@@ -1729,6 +1645,7 @@ function ClosingSection() {
   const arabicRef = useRef<HTMLDivElement>(null)
   const dividerRef = useRef<HTMLDivElement>(null)
   const dateRef = useRef<HTMLDivElement>(null)
+  const ctaRef = useRef<HTMLDivElement>(null)
   const hasAnimated = useRef(false)
 
   useEffect(() => {
@@ -1880,12 +1797,20 @@ function ClosingSection() {
                 onComplete: () => {
                   // Resume auto-scroll after closing animation is fully done
                   window.dispatchEvent(new CustomEvent('closing-sequence-complete'))
+
+                  // CTA button fade-in after credit appears
+                  if (ctaRef.current && onGoToInfo) {
+                    gsap.to(ctaRef.current, { opacity: 1, duration: 1.2, ease: 'power2.out', delay: 0.5 })
+                  }
                 }
               })
             } else {
               // No credit element — just resume after dust settles
               setTimeout(() => {
                 window.dispatchEvent(new CustomEvent('closing-sequence-complete'))
+                if (ctaRef.current && onGoToInfo) {
+                  gsap.to(ctaRef.current, { opacity: 1, duration: 1.2, ease: 'power2.out' })
+                }
               }, (afterDust + 2) * 1000)
             }
           }
@@ -1902,7 +1827,7 @@ function ClosingSection() {
     // Animation start (30% visible) is still handled by IntersectionObserver above.
 
     return () => closingObserver.disconnect()
-  }, [])
+  }, [onGoToInfo])
 
   return (
     <section ref={sectionRef} data-section="closing" className="batik-kawung-dark cinema-vignette cinema-bloom cinema-dust diary-page-close relative py-28 px-6 text-center overflow-hidden" style={{ opacity: 0 }}>
@@ -1966,6 +1891,19 @@ function ClosingSection() {
             Powered By Nauka Motion
           </p>
         </div>
+
+        {/* CTA to Info Acara — appears after closing animation completes */}
+        {onGoToInfo && (
+          <div ref={ctaRef} className="mt-12" style={{ opacity: 0 }}>
+            <button
+              onClick={onGoToInfo}
+              className="px-8 py-3 border border-[var(--gold)]/60 text-[var(--gold-light)] tracking-[0.3em] uppercase text-[10px] sm:text-xs hover:bg-[var(--gold)]/10 hover:border-[var(--gold)]/80 transition-all duration-700 cursor-pointer"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              Lihat Info Acara
+            </button>
+          </div>
+        )}
       </div>
     </section>
   )
@@ -2010,12 +1948,16 @@ function FooterSection() {
 /* ═══════════════════════════════════════════════════════════
    HOME — The Main Experience
    "Jangan buat website. Buat perasaan."
-   DELETED: LamaranSection and MenikahSection (covered in Timeline)
-   ADDED: Auto-scroll cinematic experience
+   State-based view: cover → hub → story | info
    ═══════════════════════════════════════════════════════════ */
-export default function Home() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [isOpen, setIsOpen] = useState(false)
+function HomeInner() {
+  // Read initial view from URL query params (for direct linking)
+  const searchParams = useSearchParams()
+  const initialView = searchParams.get('view') as 'story' | 'info' | null
+  const skipCover = initialView === 'story' || initialView === 'info'
+
+  const [isLoading, setIsLoading] = useState(() => skipCover ? false : true)
+  const [view, setView] = useState<'cover' | 'hub' | 'story' | 'info'>(() => skipCover ? initialView! : 'cover')
   const [isPlaying, setIsPlaying] = useState(false)
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true)
   const autoScrollRef = useRef(true)
@@ -2038,7 +1980,14 @@ export default function Home() {
   }, [])
 
   const handleOpen = useCallback(() => {
-    setIsOpen(true)
+    setView('hub')
+  }, [])
+
+  const handleViewChoose = useCallback((newView: 'story' | 'info') => {
+    window.scrollTo(0, 0)
+    // Kill any existing ScrollTrigger instances
+    ScrollTrigger.getAll().forEach(st => st.kill())
+    setView(newView)
   }, [])
 
   const toggleMusic = useCallback(() => {
@@ -2060,50 +2009,23 @@ export default function Home() {
 
   // ═══════════════════════════════════════════════════════════
   // AUTO-SCROLL — Time accumulator approach
-  //
-  // WHY THIS WORKS (and the old approach didn't):
-  // - Old: velocity ramp + lerp + dt normalization = varying scroll per frame = STUTTER
-  // - New: fixed px/s rate + time accumulator = constant scroll speed = BUTTER SMOOTH
-  //
-  // The key insight: stuttering comes from UNEQUAL scroll amounts per frame.
-  // When velocity changes every frame (ramp/lerp/decay), each frame scrolls
-  // a different amount → visible jerkiness. By using a time accumulator that
-  // only scrolls WHOLE pixels, the browser gets a consistent scroll delta
-  // every frame, eliminating stutter completely.
-  //
-  // Only 2 things pause the scroll:
-  // 1. Cinematic lock (diary/closing) — triggered by custom events
-  // 2. User manual scroll — pauses for 2.5s then resumes
+  // Only active when view === 'story'
   // ═══════════════════════════════════════════════════════════
   useEffect(() => {
-    if (!isOpen) return
+    if (view !== 'story') return
 
     let animationId: number
-    let resumeTimeout: ReturnType<typeof setTimeout>
+    let resumeTimeout: ReturnType<typeof setTimeout> | undefined
     let lastTime = 0
 
     // ─── Speed: pixels per millisecond ───
-    // 0.025 px/ms = ~1.5 px/frame at 60fps = ~25 px/s (normal)
-    // Very slow cinematic drift — like watching a story unfold page by page
-    // Countdown: 2x speed = faster through countdown numbers
-    // Acara: 2x speed = faster through event details
-    // Gallery: 1x speed = normal cinematic pace for photos
-    // RSVP→Wishes: 2x speed = cruise through RSVP/envelope/wishes
-    // Closing: 1x normal speed, ScrollTrigger at top -100%
     const pxPerMs = 0.025
-    const pxPerMsCountdown = pxPerMs * 2  // 2x speed at countdown section
-    const pxPerMsAcara = pxPerMs * 2      // 2x speed at acara section
-    const pxPerMsRSVP = pxPerMs * 2       // 2x speed from RSVP onwards
+    const pxPerMsCountdown = pxPerMs * 2
+    const pxPerMsAcara = pxPerMs * 2
+    const pxPerMsRSVP = pxPerMs * 2
 
     // ─── Section-aware speed using getBoundingClientRect() ───
-    // WHY NOT offsetTop caching:
-    // Diary pin spacer adds ~125vh to the page. When pin is killed,
-    // ScrollTrigger.refresh() shifts all section positions.
-    // Cached offsetTop values become stale → wrong speed zones → scroll gets stuck.
-    // getBoundingClientRect() always returns real-time viewport-relative positions,
-    // so it automatically handles layout shifts from pin removal.
-    // We only cache the DOM element reference (not the position).
-    let diaryIntroElRef: Element | null | undefined = undefined  // undefined = not queried
+    let diaryIntroElRef: Element | null | undefined = undefined
     let countdownElRef: Element | null | undefined = undefined
     let acaraElRef: Element | null | undefined = undefined
     let galleryElRef: Element | null | undefined = undefined
@@ -2115,7 +2037,6 @@ export default function Home() {
       if (diaryIntroElRef === undefined) diaryIntroElRef = document.querySelector('[data-section="diaryIntro"]')
       if (!diaryIntroElRef) return false
       const rect = diaryIntroElRef.getBoundingClientRect()
-      // Diary intro is in view when its top is above 50% viewport and bottom is below 30%
       return rect.top <= window.innerHeight * 0.5 && rect.bottom >= window.innerHeight * 0.3
     }
     const isPastCountdown = (): boolean => {
@@ -2141,51 +2062,42 @@ export default function Home() {
     const isClosingVisible = (): boolean => {
       if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
       if (!closingElRef) return false
-      // Closing section entering viewport — start smooth deceleration
       return closingElRef.getBoundingClientRect().top <= window.innerHeight
     }
 
     const isClosingReadyToLock = (): boolean => {
       if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
       if (!closingElRef) return false
-      // Closing section top has reached top 15% of viewport — lock auto-scroll
-      // Using 15% instead of 0% to ensure closing is truly the main content on screen
-      // This is checked directly in tick() instead of ScrollTrigger to avoid
-      // miscalculations after diary pin removal
       return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.15
     }
 
     // ─── State ───
-    let cinematicLock = false  // ONLY used by diary section (pinned, time-based)
-    let accumulated = 0  // Fractional pixel accumulator
+    let cinematicLock = false
+    let accumulated = 0
 
     // ─── rAF tick ───
     const tick = (time: number) => {
       animationId = requestAnimationFrame(tick)
 
-      // First frame — seed lastTime, don't scroll
       if (lastTime === 0) {
         lastTime = time
         return
       }
 
-      const delta = Math.min(time - lastTime, 50)  // Cap at 50ms to prevent huge jumps after tab switch
+      const delta = Math.min(time - lastTime, 50)
       lastTime = time
 
-      // ─── Paused states — don't accumulate ───
       if (cinematicLock || !autoScrollRef.current) {
-        accumulated = 0  // Reset accumulator so resume doesn't cause a jump
+        accumulated = 0
         return
       }
 
-      // ─── At bottom? Stay alive but don't scroll ───
       const atBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 50)
       if (atBottom) {
         accumulated = 0
         return
       }
 
-      // ─── Section detection using getBoundingClientRect (real-time, no stale cache) ───
       const atDiaryIntro = isAtDiaryIntro()
       const pastCountdown = isPastCountdown()
       const pastAcara = isPastAcara()
@@ -2194,41 +2106,31 @@ export default function Home() {
       const closingVisible = isClosingVisible()
       const closingReadyToLock = isClosingReadyToLock()
 
-      // ─── Closing lock — dispatch event when closing reaches top 15% of viewport ───
-      // This replaces the old ScrollTrigger-based lock which miscalculated after diary pin removal
       if (closingReadyToLock && !cinematicLock) {
         window.dispatchEvent(new CustomEvent('closing-sequence-start'))
       }
 
-      // ─── Accumulate fractional pixels ───
-      // Speed zones: normal 1x → diary intro 0.8x → countdown 2x → acara 2x → gallery 1x → RSVP 2x → closing visible 1.5x → lock 0
-      // Diary intro: slower so handwriting can complete before scroll moves past
-      // Closing visible: smooth deceleration from 2x to 1.5x before cinematic lock
-      // No more 1x zones at envelope — that was causing perceived "stops"
       let speed: number
       if (closingVisible) {
-        speed = pxPerMs * 1.5  // 1.5x — smooth deceleration before closing lock (2x → 1.5x → 0)
+        speed = pxPerMs * 1.5
       } else if (pastRSVP) {
-        speed = pxPerMsRSVP    // 2x — cruise through RSVP + envelope + wishes
+        speed = pxPerMsRSVP
       } else if (pastGallery) {
-        speed = pxPerMs        // 1x — normal cinematic pace for gallery photos
+        speed = pxPerMs
       } else if (pastAcara) {
-        speed = pxPerMsAcara   // 2x — faster through acara (event details)
+        speed = pxPerMsAcara
       } else if (pastCountdown) {
-        speed = pxPerMsCountdown // 2x — faster through countdown
+        speed = pxPerMsCountdown
       } else if (atDiaryIntro) {
-        speed = pxPerMs * 0.8  // 0.8x = 20 px/s — slower so handwriting reads comfortably
+        speed = pxPerMs * 0.8
       } else {
-        speed = pxPerMs        // 1x — Normal cinematic drift
+        speed = pxPerMs
       }
       accumulated += delta * speed
 
-      // ─── Only scroll WHOLE pixels — avoids sub-pixel layout thrashing ───
       const wholePixels = Math.floor(accumulated)
       if (wholePixels > 0) {
         accumulated -= wholePixels
-        // Use scrollTo with absolute position instead of scrollBy
-        // This avoids conflicts with GSAP ScrollTrigger's internal scroll tracking
         const targetY = window.scrollY + wholePixels
         window.scrollTo(0, targetY)
       }
@@ -2241,18 +2143,11 @@ export default function Home() {
     }, 10000)
 
     // ═══ Cinematic lock — diary AND closing ═══
-    // diary-sequence-start: dispatched by DiaryStorySection when scroll reaches top 0%
-    // diary-sequence-complete: dispatched when diary animations finish
-    // closing-sequence-start: dispatched by ClosingSection when it enters viewport
-    // closing-sequence-complete: dispatched when closing animations finish
-    // No pause = no deadlock from ScrollTrigger.refresh() after diary pin removal.
     const onDiaryStart = () => { cinematicLock = true }
 
     const onDiaryComplete = () => {
       cinematicLock = false
       userScrollingRef.current = false
-      // Reset element refs so they get re-queried after diary pin removal
-      // (pin removal shifts all section positions in the DOM)
       countdownElRef = undefined
       acaraElRef = undefined
       galleryElRef = undefined
@@ -2282,13 +2177,11 @@ export default function Home() {
       window.removeEventListener('closing-sequence-start', onClosingStart)
       window.removeEventListener('closing-sequence-complete', onClosingComplete)
     }
-  }, [isOpen])
+  }, [view])
 
   // Music fade-out during closing section — emotional synchronization
-  // The story slowly disappears into silence, not cut off abruptly
-  // Gradual fade synced with dust dissolve, then brief silence at the end
   useEffect(() => {
-    if (!isOpen || !audioRef.current) return
+    if (view !== 'story' || !audioRef.current) return
 
     const closingSection = document.querySelector('.batik-kawung-dark.cinema-vignette')
     if (!closingSection) return
@@ -2303,35 +2196,31 @@ export default function Home() {
         entries.forEach((entry) => {
           if (entry.isIntersecting && !hasStartedFade && isPlaying) {
             hasStartedFade = true
-            // Gradual volume reduction — slow, emotional, synchronized with text dissolve
-            // Five-phase fade: barely perceptible → slowly getting quieter → noticeable → fading → last whispers
             fadeInterval = setInterval(() => {
               if (audio.volume > 0.02) {
                 const reduction = audio.volume > 0.7
-                  ? 0.002   // Phase 1: Barely perceptible
+                  ? 0.002
                   : audio.volume > 0.5
-                    ? 0.003  // Phase 2: Slowly getting quieter
+                    ? 0.003
                     : audio.volume > 0.3
-                      ? 0.005 // Phase 3: Noticeable fade
+                      ? 0.005
                       : audio.volume > 0.15
-                        ? 0.008 // Phase 4: Fading
-                        : 0.012 // Phase 5: Last whispers
+                        ? 0.008
+                        : 0.012
                 audio.volume = Math.max(0, audio.volume - reduction)
               } else {
-                // Sound has faded to near-zero
                 audio.volume = 0
-                // Brief moment of silence before full pause — let the absence of sound be felt
                 if (fadeInterval) clearInterval(fadeInterval)
                 silenceTimeout = setTimeout(() => {
                   audio.pause()
                   setIsPlaying(false)
-                }, 2500) // 2.5s of pure silence before full pause — the emotional breath
+                }, 2500)
               }
-            }, 120) // Slower interval for smoother fade
+            }, 120)
           }
         })
       },
-      { threshold: 0.1 } // Start fading earlier (10%) for more gradual transition
+      { threshold: 0.1 }
     )
 
     observer.observe(closingSection)
@@ -2341,13 +2230,13 @@ export default function Home() {
       if (fadeInterval) clearInterval(fadeInterval)
       if (silenceTimeout) clearTimeout(silenceTimeout)
     }
-  }, [isOpen, isPlaying])
+  }, [view, isPlaying])
 
   return (
     <>
       <audio ref={audioRef} src="/music/gamelan-bg.mp3" loop preload="auto" />
 
-      {isLoading && (
+      {isLoading && view === 'cover' && (
         <Preloader
           onComplete={handlePreloaderComplete}
           groomName={getWeddingData().groom}
@@ -2355,39 +2244,40 @@ export default function Home() {
         />
       )}
 
-      {!isLoading && !isOpen && (
+      {/* Cover phase */}
+      {view === 'cover' && !isLoading && (
         <Suspense fallback={null}>
           <CoverSectionComponent onOpen={handleOpen} onOpenStart={handleOpenStart} />
         </Suspense>
       )}
 
-      {!isLoading && isOpen && (
+      {/* Hub phase — 2 buttons after cover animation */}
+      {view === 'hub' && (
+        <CoverHub onChoose={handleViewChoose} />
+      )}
+
+      {/* Story phase — cinematic experience */}
+      {view === 'story' && (
       <>
         <SmoothScroll>
           <main className="relative" style={{ touchAction: 'manipulation' }}>
             <CursorFollower />
             <DriedLeaves />
 
-            {/* The Diary — each section is a page */}
+            {/* Story sections only */}
             <BismillahSection />
             <CoupleSection />
             <DiaryIntroSection />
             <DiaryStorySection />
-            {/* LamaranSection and MenikahSection REMOVED — covered in Timeline */}
-            <CountdownSection />
-            <EventSection />
             <GallerySection />
-            <RSVPSection />
-            <DigitalEnvelope />
-            <GuestWishes />
-            <ClosingSection />
+            <ClosingSection onGoToInfo={() => handleViewChoose('info')} />
             <FooterSection />
           </main>
 
         </SmoothScroll>
 
         {/* Control buttons — bottom left, small and minimal, rendered via portal */}
-        {isOpen && typeof window !== 'undefined' && createPortal(
+        {typeof window !== 'undefined' && createPortal(
           <div className="fixed bottom-4 left-4 flex flex-col gap-2" style={{ zIndex: 99998 }}>
             {/* Auto-scroll toggle */}
             <button
@@ -2452,6 +2342,74 @@ export default function Home() {
         )}
       </>
       )}
+
+      {/* Info phase — practical information */}
+      {view === 'info' && (
+      <>
+        <main className="relative" style={{ touchAction: 'manipulation' }}>
+          {/* Subtle link to story */}
+          <div className="text-center py-8 px-6" style={{ background: 'var(--cream-dark)' }}>
+            <button
+              onClick={() => handleViewChoose('story')}
+              className="text-sm tracking-[0.2em] uppercase cursor-pointer hover:opacity-80 transition-opacity duration-300"
+              style={{ fontFamily: 'var(--font-body)', color: 'var(--gold)', opacity: 0.6 }}
+            >
+              <span className="flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                Baca Cerita Kami
+              </span>
+            </button>
+          </div>
+
+          {/* Info sections */}
+          <CountdownSection />
+          <EventSection />
+          <RSVPSection />
+          <DigitalEnvelope />
+          <GuestWishes />
+          <FooterSection />
+        </main>
+
+        {/* Music control for info view */}
+        {typeof window !== 'undefined' && createPortal(
+          <button
+            onClick={toggleMusic}
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[var(--gold)]/60 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110"
+            style={{
+              background: isPlaying ? 'rgba(250, 245, 230, 0.9)' : 'rgba(201, 169, 110, 0.9)',
+              color: isPlaying ? 'var(--gold-dark)' : '#fff',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              boxShadow: isPlaying ? '0 0 10px rgba(201, 169, 110, 0.2)' : '0 0 10px rgba(201, 169, 110, 0.4)',
+              position: 'fixed',
+              bottom: '1.5rem',
+              left: '1.5rem',
+              zIndex: 99998,
+            }}
+            title={isPlaying ? 'Pause Musik' : 'Putar Musik'}
+          >
+            {isPlaying ? (
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            )}
+          </button>,
+          document.body
+        )}
+      </>
+      )}
     </>
+  )
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeInner />
+    </Suspense>
   )
 }
