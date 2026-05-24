@@ -65,6 +65,124 @@ function CursorFollower() {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   1b. CHAPTER DIVIDER — Cinematic interstitial between chapters
+   Thin gold lines above and below, script font, very subtle
+   Like a chapter break in a film or a book
+   ═══════════════════════════════════════════════════════════ */
+function ChapterDivider({ title, index }: { title: string; index: number }) {
+  const dividerRef = useRef<HTMLDivElement>(null)
+  const lineTopRef = useRef<HTMLDivElement>(null)
+  const lineBottomRef = useRef<HTMLDivElement>(null)
+  const textRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!dividerRef.current) return
+
+    // Animate the gold lines drawing in and text fading in
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: dividerRef.current,
+        start: 'top 80%',
+        toggleActions: 'play none none none',
+      },
+    })
+
+    // Top line draws from center outward
+    if (lineTopRef.current) {
+      gsap.set(lineTopRef.current, { scaleX: 0, transformOrigin: 'center center' })
+      tl.to(lineTopRef.current, { scaleX: 1, duration: 1.2, ease: 'power2.inOut' })
+    }
+
+    // Text fades in after line draws
+    if (textRef.current) {
+      gsap.set(textRef.current, { opacity: 0, y: 5 })
+      tl.to(textRef.current, { opacity: 0.3, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.4')
+    }
+
+    // Bottom line draws from center outward
+    if (lineBottomRef.current) {
+      gsap.set(lineBottomRef.current, { scaleX: 0, transformOrigin: 'center center' })
+      tl.to(lineBottomRef.current, { scaleX: 1, duration: 1.2, ease: 'power2.inOut' }, '-=0.8')
+    }
+  }, [])
+
+  return (
+    <div
+      ref={dividerRef}
+      data-section={`chapter-${index}`}
+      className="flex flex-col items-center justify-center py-16"
+      style={{ background: 'var(--dark-bg)' }}
+    >
+      {/* Top gold divider line */}
+      <div
+        ref={lineTopRef}
+        className="w-24 h-[1px]"
+        style={{ background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.4 }}
+      />
+      {/* Chapter name */}
+      <div
+        ref={textRef}
+        className="my-4 text-sm tracking-[0.3em] uppercase"
+        style={{ fontFamily: 'var(--font-script)', color: 'var(--gold)', opacity: 0.3 }}
+      >
+        {title}
+      </div>
+      {/* Bottom gold divider line */}
+      <div
+        ref={lineBottomRef}
+        className="w-24 h-[1px]"
+        style={{ background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.4 }}
+      />
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════
+   1c. STORY PROGRESS — Thin gold line on left side
+   Fills vertically based on scroll progress
+   Very subtle — barely there track, thin gold fill
+   ═══════════════════════════════════════════════════════════ */
+function StoryProgress() {
+  const fillRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!fillRef.current) return
+      const scrollTop = window.scrollY
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      if (docHeight <= 0) return
+      const progress = Math.min(scrollTop / docHeight, 1)
+      fillRef.current.style.transform = `scaleY(${progress})`
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll() // Initial
+
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  return (
+    <div
+      className="fixed top-0 left-0 h-full"
+      style={{ width: '2px', zIndex: 9999 }}
+      aria-hidden="true"
+    >
+      {/* Track — barely visible */}
+      <div
+        className="absolute inset-0"
+        style={{ background: 'rgba(201,169,110,0.1)' }}
+      />
+      {/* Fill — thin gold */}
+      <div
+        ref={fillRef}
+        className="absolute top-0 left-0 w-full h-full origin-top"
+        style={{ background: 'var(--gold)', transform: 'scaleY(0)', transformOrigin: 'top center' }}
+      />
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════
    2. BISMILLAH — Sacred, still, reverent
    The opening of every good thing
    Cinema dark atmosphere, more moody
@@ -180,8 +298,8 @@ function BismillahSection() {
 
   return (
     <section ref={sectionRef} data-section="bismillah" className="cinema-dark-section cinema-vignette cinema-bloom cinema-dust py-28 px-6 text-center relative overflow-hidden" style={{ opacity: 0 }}>
-      {/* Soft golden light spots */}
-      <div className="gold-light-leak absolute inset-0 pointer-events-none" />
+      {/* Sacred mosque light — golden rays from above, like light through mosque windows */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(201,169,110,0.15) 0%, transparent 60%)' }} />
       <div className="max-w-2xl mx-auto relative z-10">
         <p
           ref={arabicRef}
@@ -382,8 +500,8 @@ function CoupleSection() {
 
   return (
     <section ref={sectionRef} data-section="couple" className="cinema-dark-section cinema-vignette cinema-bloom cinema-dust py-28 px-6 relative overflow-hidden" style={{ opacity: 0 }}>
-      {/* Soft golden light spots */}
-      <div className="gold-light-leak absolute inset-0 pointer-events-none" />
+      {/* Candlelit intimacy — warm ambient glow from center, deeper vignette edges */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(201,169,110,0.1) 0%, rgba(26,21,16,0.3) 70%, rgba(26,21,16,0.6) 100%)', animation: 'candleFlicker 6s ease-in-out infinite' }} />
 
       <div className="max-w-4xl mx-auto text-center relative z-10">
         <h2 className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'var(--font-script)', color: 'var(--gold-light)' }}>
@@ -542,6 +660,8 @@ function DiaryIntroSection() {
       className="diary-paper-bg diary-lines diary-margin cinema-depth py-28 px-6 text-center relative overflow-hidden"
       style={{ opacity: 0 }}
     >
+      {/* Paper texture focus — subtle sepia overlay for ink-drop feeling */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(180,160,120,0.05)' }} />
       {/* Diary entry — year + subtitle side by side */}
       <div className="max-w-xl mx-auto relative">
         {/* Year + Subtitle — side by side, handwriting reveal */}
@@ -944,6 +1064,8 @@ function DiaryStorySection() {
 
   return (
     <section ref={sectionRef} data-section="diaryStory" className="diary-paper-bg diary-lines diary-margin cinema-depth py-28 px-6 relative" style={{ opacity: 0 }}>
+      {/* Warm reading-lamp glow from top-left */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 20% 10%, rgba(201,169,110,0.08) 0%, transparent 50%)' }} />
       {/* Progress bar — thin gold line at top */}
       <div
         ref={progressRef}
@@ -1321,10 +1443,8 @@ function GallerySection() {
         )
       }
 
-      // ─── Photos reveal — fast stagger so all visible during auto-scroll ───
-      // Problem: slow cascade + auto-scroll = only first photo visible
-      // Fix: start photos at 0.15 opacity (always slightly visible), short stagger (0.06s),
-      // fast 2-phase animation so ALL photos animate before scroll moves past
+      // ─── Photos reveal — staggered with blur-to-clear + Ken Burns ───
+      // Enhanced: 0.15s stagger, blur-to-clear, then Ken Burns slow zoom+pan
       const memories = section.querySelectorAll('.memory-photo')
       if (memories.length > 0) {
         // Set all photos to base opacity immediately so they're never invisible
@@ -1336,8 +1456,8 @@ function GallerySection() {
           const depth = depthOffsets.current[i]
           const isFeatured = i % 4 === 0
 
-          // Short stagger — all photos animate within ~0.3s
-          const staggerDelay = isMobile ? 0.04 * i : 0.06 * i
+          // Staggered reveal — 0.15s stagger for cinematic cascade
+          const staggerDelay = isMobile ? 0.1 * i : 0.15 * i
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -1367,8 +1487,17 @@ function GallerySection() {
             ease: 'power2.out',
           })
 
-          // Phase 3: Breathing float — the memory is alive, gently drifting
+          // Phase 3: Ken Burns — slow zoom + pan on the inner <img>
           tl.call(() => {
+            const imgEl = memory.querySelector('img')
+            if (imgEl) {
+              gsap.fromTo(imgEl,
+                { scale: 1, x: 0, y: 0 },
+                { scale: 1.06, x: '-1%', y: '-0.5%', duration: 10, ease: 'none' }
+              )
+            }
+
+            // Breathing float — the memory is alive, gently drifting
             const floatDistance = isFeatured ? 3.5 : 2
             const floatDuration = isFeatured ? 4.5 : 3 + Math.random() * 2.5
             const floatX = (Math.random() - 0.5) * 2
@@ -1454,6 +1583,8 @@ function GallerySection() {
 
   return (
     <section ref={sectionRef} data-section="gallery" className="diary-paper-bg cinema-depth py-28 px-6 relative overflow-hidden" style={{ opacity: 0 }}>
+      {/* Dark vignette overlay — focus attention on photos */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(26,21,16,0.3) 100%)', zIndex: 2 }} />
       {/* Background handwriting silhouette — Quran verse about love flowing behind photos */}
       <div
         ref={bgTextRef}
@@ -1536,7 +1667,7 @@ function GallerySection() {
                 <img
                   src={img}
                   alt={getWeddingData().galleryCaptions[index]}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover will-change-transform"
                   loading="lazy"
                 />
               </div>
@@ -2023,6 +2154,7 @@ function HomeInner() {
     const pxPerMsCountdown = pxPerMs * 2
     const pxPerMsAcara = pxPerMs * 2
     const pxPerMsRSVP = pxPerMs * 2
+    const pxPerMsChapter = pxPerMs * 3 // Cruise through chapter transitions fast
 
     // ─── Section-aware speed using getBoundingClientRect() ───
     let diaryIntroElRef: Element | null | undefined = undefined
@@ -2071,6 +2203,18 @@ function HomeInner() {
       return closingElRef.getBoundingClientRect().top <= window.innerHeight * 0.15
     }
 
+    const isAtChapterTransition = (): boolean => {
+      // Check if viewport center is over a chapter divider section
+      const chapterEls = document.querySelectorAll('[data-section^="chapter-"]')
+      for (const el of chapterEls) {
+        const rect = el.getBoundingClientRect()
+        if (rect.top <= window.innerHeight * 0.5 && rect.bottom >= window.innerHeight * 0.3) {
+          return true
+        }
+      }
+      return false
+    }
+
     // ─── State ───
     let cinematicLock = false
     let accumulated = 0
@@ -2099,6 +2243,7 @@ function HomeInner() {
       }
 
       const atDiaryIntro = isAtDiaryIntro()
+      const atChapter = isAtChapterTransition()
       const pastCountdown = isPastCountdown()
       const pastAcara = isPastAcara()
       const pastGallery = isPastGallery()
@@ -2111,7 +2256,9 @@ function HomeInner() {
       }
 
       let speed: number
-      if (closingVisible) {
+      if (atChapter) {
+        speed = pxPerMsChapter
+      } else if (closingVisible) {
         speed = pxPerMs * 1.5
       } else if (pastRSVP) {
         speed = pxPerMsRSVP
@@ -2262,14 +2409,19 @@ function HomeInner() {
         <SmoothScroll>
           <main className="relative" style={{ touchAction: 'manipulation' }}>
             <CursorFollower />
+            <StoryProgress />
             <DriedLeaves />
 
             {/* Story sections only */}
             <BismillahSection />
+            <ChapterDivider title="Dua Jiwa" index={1} />
             <CoupleSection />
+            <ChapterDivider title="Catatan Kami" index={2} />
             <DiaryIntroSection />
             <DiaryStorySection />
+            <ChapterDivider title="Momen" index={3} />
             <GallerySection />
+            <ChapterDivider title="Akhir" index={4} />
             <ClosingSection onGoToInfo={() => handleViewChoose('info')} />
             <FooterSection />
           </main>
