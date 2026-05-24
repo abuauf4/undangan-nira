@@ -85,56 +85,31 @@ export default function DriedLeaves() {
     if (id === 'A') {
       // Leaf A — elongated, warm brown, slightly curled — groom's leaf
       el.innerHTML = `
-        <svg width="36" height="48" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="leafAGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="rgba(166,123,61,0.85)"/>
-              <stop offset="50%" stop-color="rgba(139,100,50,0.9)"/>
-              <stop offset="100%" stop-color="rgba(107,66,38,0.85)"/>
-            </linearGradient>
-          </defs>
+        <svg width="22" height="30" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M18 0C18 0 28 8 31 18C34 28 26 44 18 48C10 44 2 28 5 18C8 8 18 0 18 0Z"
-            fill="url(#leafAGrad)" stroke="rgba(92,74,50,0.6)" stroke-width="0.6"/>
-          <path d="M18 4L18 44" stroke="rgba(92,74,50,0.7)" stroke-width="0.8" stroke-linecap="round"/>
-          <path d="M18 10L11 6" stroke="rgba(201,169,110,0.45)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M18 10L25 6" stroke="rgba(201,169,110,0.45)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M18 18L10 14" stroke="rgba(201,169,110,0.45)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M18 18L26 14" stroke="rgba(201,169,110,0.45)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M18 26L9 22" stroke="rgba(201,169,110,0.45)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M18 26L27 22" stroke="rgba(201,169,110,0.45)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M18 34L11 30" stroke="rgba(201,169,110,0.4)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M18 34L25 30" stroke="rgba(201,169,110,0.4)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M18 0C18 0 28 8 31 18" stroke="rgba(201,169,110,0.35)" stroke-width="0.4" fill="none"/>
-          <circle cx="14" cy="20" r="2" fill="rgba(166,123,61,0.25)"/>
-          <circle cx="22" cy="30" r="1.5" fill="rgba(166,123,61,0.2)"/>
+            fill="rgba(139,100,50,0.55)" stroke="rgba(92,74,50,0.35)" stroke-width="0.5"/>
+          <path d="M18 4L18 44" stroke="rgba(92,74,50,0.4)" stroke-width="0.6" stroke-linecap="round"/>
+          <path d="M18 10L11 6" stroke="rgba(201,169,110,0.25)" stroke-width="0.4" stroke-linecap="round"/>
+          <path d="M18 10L25 6" stroke="rgba(201,169,110,0.25)" stroke-width="0.4" stroke-linecap="round"/>
+          <path d="M18 18L10 14" stroke="rgba(201,169,110,0.25)" stroke-width="0.4" stroke-linecap="round"/>
+          <path d="M18 18L26 14" stroke="rgba(201,169,110,0.25)" stroke-width="0.4" stroke-linecap="round"/>
+          <path d="M18 26L9 22" stroke="rgba(201,169,110,0.2)" stroke-width="0.4" stroke-linecap="round"/>
+          <path d="M18 26L27 22" stroke="rgba(201,169,110,0.2)" stroke-width="0.4" stroke-linecap="round"/>
         </svg>
       `
     } else {
       // Leaf B — rounder, deeper brown, golden edges — bride's leaf
       el.innerHTML = `
-        <svg width="34" height="46" viewBox="0 0 34 46" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="leafBGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="rgba(139,90,43,0.9)"/>
-              <stop offset="50%" stop-color="rgba(107,66,38,0.9)"/>
-              <stop offset="100%" stop-color="rgba(80,50,28,0.85)"/>
-            </linearGradient>
-          </defs>
+        <svg width="20" height="28" viewBox="0 0 34 46" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M17 0C17 0 27 6 31 16C34 26 26 40 17 46C8 40 0 26 3 16C6 6 17 0 17 0Z"
-            fill="url(#leafBGrad)" stroke="rgba(92,74,50,0.6)" stroke-width="0.6"/>
-          <path d="M17 4C17 4 16.5 22 17 42" stroke="rgba(92,74,50,0.7)" stroke-width="0.8" stroke-linecap="round" fill="none"/>
-          <path d="M17 9L9 5" stroke="rgba(201,169,110,0.5)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M17 9L25 5" stroke="rgba(201,169,110,0.5)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M16.5 17L8 13" stroke="rgba(201,169,110,0.5)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M16.5 17L25 13" stroke="rgba(201,169,110,0.5)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M16.5 25L6 21" stroke="rgba(201,169,110,0.45)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M16.5 25L27 21" stroke="rgba(201,169,110,0.45)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M16.8 33L9 29" stroke="rgba(201,169,110,0.4)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M16.8 33L24 29" stroke="rgba(201,169,110,0.4)" stroke-width="0.5" stroke-linecap="round"/>
-          <path d="M17 0C17 0 27 6 31 16" stroke="rgba(201,169,110,0.4)" stroke-width="0.5" fill="none"/>
-          <path d="M17 0C17 0 7 6 3 16" stroke="rgba(201,169,110,0.3)" stroke-width="0.4" fill="none"/>
-          <circle cx="20" cy="18" r="1.8" fill="rgba(166,123,61,0.3)"/>
-          <circle cx="13" cy="28" r="1.3" fill="rgba(166,123,61,0.25)"/>
+            fill="rgba(107,66,38,0.55)" stroke="rgba(92,74,50,0.35)" stroke-width="0.5"/>
+          <path d="M17 4C17 4 16.5 22 17 42" stroke="rgba(92,74,50,0.4)" stroke-width="0.6" stroke-linecap="round" fill="none"/>
+          <path d="M17 9L9 5" stroke="rgba(201,169,110,0.25)" stroke-width="0.4" stroke-linecap="round"/>
+          <path d="M17 9L25 5" stroke="rgba(201,169,110,0.25)" stroke-width="0.4" stroke-linecap="round"/>
+          <path d="M16.5 17L8 13" stroke="rgba(201,169,110,0.25)" stroke-width="0.4" stroke-linecap="round"/>
+          <path d="M16.5 17L25 13" stroke="rgba(201,169,110,0.25)" stroke-width="0.4" stroke-linecap="round"/>
+          <path d="M16.5 25L6 21" stroke="rgba(201,169,110,0.2)" stroke-width="0.4" stroke-linecap="round"/>
+          <path d="M16.5 25L27 21" stroke="rgba(201,169,110,0.2)" stroke-width="0.4" stroke-linecap="round"/>
         </svg>
       `
     }
@@ -159,8 +134,8 @@ export default function DriedLeaves() {
       vx: 0,
       vy: 0,
       rotation: id === 'A' ? 12 : -18,
-      rotationVel: id === 'A' ? 0.05 : -0.04,
-      scale: 0.85,
+      rotationVel: id === 'A' ? 0.03 : -0.02,
+      scale: 0.7,
       opacity: 0,
       element: el,
       swayDirection: id === 'A' ? 1 : -1,
@@ -224,8 +199,8 @@ export default function DriedLeaves() {
 
       leavesRef.current.forEach(leaf => {
         // ─── Fade in gently at start ───
-        if (!leaf.isClosing && leaf.opacity < 0.6) {
-          leaf.opacity = Math.min(0.6, leaf.opacity + 0.003)
+        if (!leaf.isClosing && leaf.opacity < 0.35) {
+          leaf.opacity = Math.min(0.35, leaf.opacity + 0.002)
         }
 
         if (leaf.isClosing) {
@@ -260,8 +235,8 @@ export default function DriedLeaves() {
             ? closingRect.bottom - 100 // land near the bottom
             : vh * 0.85
 
-          // Add last gentle sway during closing — still terombang-ambing pelan
-          const closingSway = (1 - ease) * organicNoise(t * 0.5, leaf.id === 'A' ? 10 : 15) * 15
+          // Add last gentle sway during closing — pelan banget
+          const closingSway = (1 - ease) * organicNoise(t * 0.4, leaf.id === 'A' ? 10 : 15) * 8
 
           leaf.x = leaf.closingStartX + (targetX + closingSway - leaf.closingStartX) * ease
           leaf.y = leaf.closingStartY + (targetY - leaf.closingStartY) * ease
@@ -270,11 +245,11 @@ export default function DriedLeaves() {
           const restRotation = leaf.id === 'A' ? 3 : -5
           leaf.rotation = leaf.closingStartRotation + (restRotation - leaf.closingStartRotation) * ease
 
-          // Scale gently grows — coming forward towards the viewer
-          leaf.scale = leaf.closingStartScale + (1.2 - leaf.closingStartScale) * ease
+          // Scale gently settles
+          leaf.scale = leaf.closingStartScale + (0.9 - leaf.closingStartScale) * ease
 
-          // Opacity warms as they arrive together — tetap transparan tapi lebih jelas
-          leaf.opacity = 0.6 + ease * 0.25
+          // Opacity warms slightly as they arrive — still subtle
+          leaf.opacity = 0.35 + ease * 0.2
 
         } else {
           // ═══════════════════════════════════════════════════════════
@@ -284,16 +259,13 @@ export default function DriedLeaves() {
           // ═══════════════════════════════════════════════════════════
 
           // ─── Buoyancy system ───
-          const restY = vh * 0.35 // their natural floating altitude
-          const buoyancy = (leaf.y - restY) * -0.003
-          const gravity = 0.003 // gentle downward pull
+          const restY = vh * 0.35
+          const buoyancy = (leaf.y - restY) * -0.002
+          const gravity = 0.002
 
-          // Vertical: gravity pulls down, buoyancy pushes up
           leaf.vy += gravity + buoyancy
-          // Organic vertical drift — breathing, like floating in warm air
-          leaf.vy += organicNoise(t * 0.3, leaf.id === 'A' ? 0 : 5) * 0.008
-          // Damping — slow, viscous air
-          leaf.vy *= 0.97
+          leaf.vy += organicNoise(t * 0.25, leaf.id === 'A' ? 0 : 5) * 0.005
+          leaf.vy *= 0.98
           leaf.y += leaf.vy
 
           // Never reach the bottom — buoyancy keeps them floating
@@ -315,36 +287,35 @@ export default function DriedLeaves() {
           const closeX = togetherX + (leaf.id === 'A' ? -40 : 40)
           const targetBaseX = soloX + (closeX - soloX) * proximity * 0.6
 
-          // Kadang ke kanan, kadang ke kiri — angin lembut, bukan badai
-          const sway1 = organicNoise(t * 0.4, leaf.id === 'A' ? 1 : 6) * 40  // gentle sway
-          const sway2 = organicNoise(t * 0.15, leaf.id === 'A' ? 2 : 7) * 20  // secondary
-          // Gust — angin kadang berhembus lebih kencang
-          const gust = organicNoise(t * 0.08, 3) * 15 * leaf.swayDirection
+          // Kadang ke kanan, kadang ke kiri — angin sangat pelan
+          const sway1 = organicNoise(t * 0.3, leaf.id === 'A' ? 1 : 6) * 25
+          const sway2 = organicNoise(t * 0.12, leaf.id === 'A' ? 2 : 7) * 12
+          const gust = organicNoise(t * 0.06, 3) * 10 * leaf.swayDirection
 
           const targetX = targetBaseX + sway1 + sway2 + gust
 
-          // Smooth approach to target — like being carried by air currents
-          leaf.vx += (targetX - leaf.x) * 0.005
-          leaf.vx *= 0.95 // viscous air damping
+          // Smooth approach — angin pelan
+          leaf.vx += (targetX - leaf.x) * 0.003
+          leaf.vx *= 0.97
           leaf.x += leaf.vx
 
           // Keep within bounds — ga keluar layar
           leaf.x = Math.max(20, Math.min(vw - 40, leaf.x))
 
-          // ─── Rotation — gentle tilting, influenced by drift direction ───
-          const moveRotation = leaf.vx * 2.5 // tilting into the wind, not spinning
-          const breatheRotation = organicNoise(t * 0.5, leaf.id === 'A' ? 4 : 9) * 6
-          leaf.rotationVel += (moveRotation + breatheRotation - leaf.rotationVel) * 0.03
+          // ─── Rotation — very gentle tilt ───
+          const moveRotation = leaf.vx * 1.5
+          const breatheRotation = organicNoise(t * 0.4, leaf.id === 'A' ? 4 : 9) * 4
+          leaf.rotationVel += (moveRotation + breatheRotation - leaf.rotationVel) * 0.02
           leaf.rotation += leaf.rotationVel
 
           // ─── Scale — gentle breathing ───
-          const forwardDrift = organicNoise(t * 0.25, leaf.id === 'A' ? 3 : 8)
-          const targetScale = 0.8 + forwardDrift * 0.3 + proximity * 0.1
-          leaf.scale += (targetScale - leaf.scale) * 0.02
+          const forwardDrift = organicNoise(t * 0.2, leaf.id === 'A' ? 3 : 8)
+          const targetScale = 0.65 + forwardDrift * 0.2 + proximity * 0.08
+          leaf.scale += (targetScale - leaf.scale) * 0.015
 
-          // ─── Opacity — translucent, elegant ───
-          const scaleNorm = (leaf.scale - 0.8) / 0.4
-          leaf.opacity = 0.4 + scaleNorm * 0.2 + proximity * 0.1
+          // ─── Opacity — very translucent ───
+          const scaleNorm = (leaf.scale - 0.65) / 0.28
+          leaf.opacity = 0.25 + scaleNorm * 0.1 + proximity * 0.08
         }
 
         // Apply transform
