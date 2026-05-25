@@ -232,27 +232,60 @@ export default function DriedLeaves() {
 
         } else {
           // ═══════════════════════════════════════════════════════════
-          //  DRIFTING: Jatuh pelan, terombang-ambing angin
-          //  Daun jatuh perlahan — kalau keluar bawah, balik ke atas
+          //  DRIFTING: Daun jatuh pelan, dorong angin dari bawah
+          //  Daun yang sama — bukan daun baru
+          //  Angin dari bawah dorong daun ke atas saat mau jatuh
+          //  Kayak daun beneran kena updraft — natural, bukan bounce
           // ═══════════════════════════════════════════════════════════
 
           // ─── Gravity — gentle fall ───
-          leaf.vy += 0.003
-          // Organic vertical drift
+          const gravity = 0.004
+          leaf.vy += gravity
+
+          // ─── Wind updraft — dorongan angin dari bawah ───
+          // Semakin dekat ke bawah viewport, angin makin kencang dorong ke atas
+          // Ini bikin daun ga pernah jatuh keluar viewport — selalu terdorong kembali
+          const distFromBottom = vh - leaf.y
+          const updraftZone = vh * 0.65 // daun mulai kena angin di 65% dari atas
+          const updraftThreshold = vh * 0.8  // angin mulai kuat di 80%
+
+          if (leaf.y > updraftZone) {
+            // Angin mulai berhembus dari bawah
+            // Semakin dekat bawah, semakin kencang
+            const depth = leaf.y > updraftThreshold
+              ? (leaf.y - updraftThreshold) / (vh - updraftThreshold) // 0→1 di zona kuat
+              : (leaf.y - updraftZone) / (updraftThreshold - updraftZone) * 0.3 // lembut di zona awal
+
+            // Updraft force — tapi bukan konstan, ada variasi organic
+            // Kadang angin kencang, kadang lemah — kayak angin beneran
+            const windVariation = organicNoise(t * 0.15 + (leaf.id === 'A' ? 0 : 3), 20) * 0.5 + 0.5 // 0→1
+            const updraftForce = depth * 0.04 * (0.5 + windVariation * 0.5) // 0.02 → 0.04
+
+            leaf.vy -= updraftForce
+          }
+
+          // ─── Ceiling — angin juga pelan-pelan dorong turun kalau terlalu atas ───
+          // Biar daun ga terbang keluar viewport atas
+          const ceilingZone = vh * 0.1
+          if (leaf.y < ceilingZone) {
+            const ceilingDepth = 1 - (leaf.y / ceilingZone)
+            leaf.vy += ceilingDepth * 0.02
+          }
+
+          // Organic vertical drift — breathing
           leaf.vy += organicNoise(t * 0.25, leaf.id === 'A' ? 0 : 5) * 0.004
-          // Damping
+          // Damping — viscous air
           leaf.vy *= 0.985
           leaf.y += leaf.vy
 
-          // Wrap around — kalau keluar bawah, balik ke atas
-          // Jadi daun selalu jatuh, ga pernah berenti di tengah
-          if (leaf.y > vh + 50) {
-            leaf.y = -60
-            leaf.vy = 0
+          // Safety: clamp supaya ga keluar viewport (backup, seharusnya ga pernah kesini)
+          if (leaf.y > vh + 30) {
+            leaf.y = vh + 30
+            leaf.vy = Math.min(0, leaf.vy) - 0.01 // dorong balik
           }
           if (leaf.y < -80) {
-            leaf.y = -60
-            leaf.vy = 0
+            leaf.y = -80
+            leaf.vy = Math.max(0, leaf.vy) + 0.01 // dorong turun
           }
 
           // ─── Horizontal drift ───
