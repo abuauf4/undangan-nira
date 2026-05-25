@@ -2074,8 +2074,9 @@ function HomeInner() {
     setView(newView)
     // Push state so browser back returns to hub
     window.history.pushState({ view: newView }, '')
-    // Auto-play music when entering story — restart if faded out
+    // Auto-play music when entering story — restart from beginning
     if (newView === 'story' && audioRef.current) {
+      audioRef.current.currentTime = 0
       audioRef.current.volume = 1
       audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
     }
@@ -2092,6 +2093,7 @@ function HomeInner() {
         setView(prev)
         // Restart music when going back to story
         if (prev === 'story' && audioRef.current) {
+          audioRef.current.currentTime = 0
           audioRef.current.volume = 1
           audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
         }
