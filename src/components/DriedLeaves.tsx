@@ -212,8 +212,8 @@ export default function DriedLeaves() {
           // KURANGI scrollParallax karena leaf.y ditambah scrollParallax saat render
           // Tanpa pengurangan, daun visualnya offset ratusan px ke bawah
           const targetY = closingRect
-            ? closingRect.top + closingRect.height * 0.7 - scrollParallax
-            : vh * 0.7 - scrollParallax
+            ? closingRect.top + closingRect.height - scrollParallax
+            : vh - scrollParallax
 
           // Horizontal: goyang pelan yang makin kecil
           const swayAmplitude = 15 * (1 - p)
@@ -230,8 +230,8 @@ export default function DriedLeaves() {
           const restRotation = leaf.id === 'A' ? 5 : -7
           leaf.rotation = leaf.closingStartRotation + (restRotation - leaf.closingStartRotation) * p + rotationSway
 
-          leaf.scale = 0.65 + p * 0.15
-          leaf.opacity = 0.3 + p * 0.2
+          leaf.scale = 0.65 + p * 0.25
+          leaf.opacity = 0.35 + p * 0.45
 
         } else {
           // ═══════════════════════════════════════════════════════════
