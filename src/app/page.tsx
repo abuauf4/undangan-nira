@@ -2144,7 +2144,9 @@ function HomeInner() {
     const isClosingReadyToLock = (): boolean => {
       if (closingElRef === undefined) closingElRef = document.querySelector('[data-section="closing"]')
       if (!closingElRef) return false
-      return closingElRef.getBoundingClientRect().top <= 0
+      // Pause when closing section bottom reaches viewport bottom
+      // So the entire closing section is visible before animation plays
+      return closingElRef.getBoundingClientRect().bottom <= window.innerHeight
     }
 
     // ─── State ───
