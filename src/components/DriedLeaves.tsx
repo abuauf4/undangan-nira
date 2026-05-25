@@ -165,6 +165,21 @@ export default function DriedLeaves() {
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
 
+    // Listen for dust dissolve — leaves start converging when text melts
+    const onDustDissolveStart = () => {
+      if (closingTriggeredRef.current) return
+      closingTriggeredRef.current = true
+      leavesRef.current.forEach(leaf => {
+        leaf.isClosing = true
+        leaf.closingProgress = 0
+        leaf.closingStartX = leaf.x
+        leaf.closingStartY = leaf.y
+        leaf.closingStartRotation = leaf.rotation
+        leaf.closingStartScale = leaf.scale
+      })
+    }
+    window.addEventListener('dust-dissolve-start', onDustDissolveStart)
+
     let startTime = 0
 
     const animate = (time: number) => {
@@ -174,23 +189,9 @@ export default function DriedLeaves() {
       const vw = window.innerWidth
       const vh = window.innerHeight
 
-      // ─── Check closing section ───
-      const closingSection = document.querySelector('[data-section="closing"]')
-      if (closingSection && !closingTriggeredRef.current) {
-        const rect = closingSection.getBoundingClientRect()
-        // Trigger when closing section is well into view
-        if (rect.top < vh * 0.4) {
-          closingTriggeredRef.current = true
-          leavesRef.current.forEach(leaf => {
-            leaf.isClosing = true
-            leaf.closingProgress = 0
-            leaf.closingStartX = leaf.x
-            leaf.closingStartY = leaf.y
-            leaf.closingStartRotation = leaf.rotation
-            leaf.closingStartScale = leaf.scale
-          })
-        }
-      }
+      // ─── Closing trigger is handled by custom event ───
+      // DriedLeaves listens for 'dust-dissolve-start' so leaves converge
+      // in sync with the text melting animation
 
       // ─── Scroll-based proximity ───
       const scrollP = scrollProgressRef.current
@@ -324,6 +325,7 @@ export default function DriedLeaves() {
     return () => {
       cancelAnimationFrame(animFrameRef.current)
       window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('dust-dissolve-start', onDustDissolveStart)
       leavesRef.current.forEach(l => l.element.remove())
       leavesRef.current = []
     }

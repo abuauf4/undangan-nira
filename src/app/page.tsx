@@ -1848,6 +1848,9 @@ function ClosingSection({ onGoToInfo }: { onGoToInfo?: () => void }) {
             // ═══ PHASE 2: DUST DISSOLVE ═══
             const dustDelay = finalEnd + 2.5
 
+            // Notify DriedLeaves to start converging — sync with text melting
+            window.dispatchEvent(new CustomEvent('dust-dissolve-start'))
+
             const titleDust = dustDissolve(titleRef.current, dustDelay)
             const subtitleDust = dustDissolve(subtitleRef.current, dustDelay + 0.4)
             const transDust = dustDissolve(transRef.current, dustDelay + 0.8)
