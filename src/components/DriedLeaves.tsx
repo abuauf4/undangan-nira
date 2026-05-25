@@ -194,6 +194,8 @@ export default function DriedLeaves() {
       // ─── Closing trigger handled by 'closing-sequence-start' event ───
       // Daun mulai jatuh pas closing dimulai (handwriting masih jalan)
 
+      const closingSection = document.querySelector('[data-section="closing"]')
+
       // ─── Scroll-based proximity ───
       const scrollP = scrollProgressRef.current
       const proximity = Math.min(1, Math.max(0, scrollP * 1.3 - 0.1))
