@@ -202,14 +202,15 @@ export default function DriedLeaves() {
         leaf.closingStartRotateZ = leaf.rotateZ
         leaf.closingStartScale = leaf.scale
 
-        // Stacking: Leaf A lands first, Leaf B on top with offset
+        // Stacking: Leaf A at left-of-center, Leaf B on top with offset
+        // CRITICAL: landY must be >= leaf.y so leaf ALWAYS falls DOWN, never goes back up
         if (leaf.id === 'A') {
-          leaf.landX = centerX - 12
-          leaf.landY = landBaseY
+          leaf.landX = centerX - 18
+          leaf.landY = Math.max(leaf.y, landBaseY)  // never go UP
           leaf.landRotateZ = 5 + Math.random() * 10
         } else {
-          leaf.landX = centerX + 6
-          leaf.landY = landBaseY - 4  // slightly higher = on top visually
+          leaf.landX = centerX + 10
+          leaf.landY = Math.max(leaf.y, landBaseY - 5)  // never go UP
           leaf.landRotateZ = -8 + Math.random() * 6
         }
       })
@@ -245,19 +246,25 @@ export default function DriedLeaves() {
           //  CLOSING: Jatuh ke landing zone, rotasi mereda, numpuk
           //  Leaf A jatuh lebih cepat, Leaf B nyusul dan numpuk di atas
           // ═══════════════════════════════════════════════════════════
-          const speed = leaf.id === 'A' ? 0.0018 : 0.0014
+          // Both leaves same speed — no awkward one-catches-up-to-other
+          const speed = 0.0015
           leaf.closingProgress = Math.min(1, leaf.closingProgress + speed)
 
           const p = leaf.closingProgress
           // Smoothstep easing — natural deceleration
           const ease = p * p * (3 - 2 * p)
 
-          // Position: ease toward landing spot
+          // X: ease toward landing spot
           leaf.x = leaf.closingStartX + (leaf.landX - leaf.closingStartX) * ease
-          leaf.y = leaf.closingStartY + (leaf.landY - leaf.closingStartY) * ease
+
+          // Y: only move DOWN — if leaf is already at or below landing, stay put
+          if (leaf.landY > leaf.closingStartY) {
+            leaf.y = leaf.closingStartY + (leaf.landY - leaf.closingStartY) * ease
+          }
+          // else: leaf already at/below landing height, don't move up
 
           // Gentle sway during descent — diminishing
-          const swayAmp = 10 * (1 - p)
+          const swayAmp = 15 * (1 - p)
           leaf.x += organicNoise(t * 0.3, leaf.id === 'A' ? 10 : 15) * swayAmp
 
           // Rotation: flatten out as leaf descends
@@ -330,19 +337,27 @@ export default function DriedLeaves() {
             leaf.vy = Math.min(0, leaf.vy)
           }
 
-          // ─── Horizontal drift ───
+          // ─── Horizontal drift — wide wandering, like real wind-carried leaves ───
           const baseX = leaf.id === 'A' ? vw * 0.25 : vw * 0.75
           const soloX = baseX
-          const closeX = togetherX + (leaf.id === 'A' ? -40 : 40)
-          const targetBaseX = soloX + (closeX - soloX) * proximity * 0.6
+          const closeX = togetherX + (leaf.id === 'A' ? -60 : 60)
+          const targetBaseX = soloX + (closeX - soloX) * proximity * 0.4
 
-          const sway1 = organicNoise(t * 0.3, leaf.id === 'A' ? 1 : 6) * 25
-          const sway2 = organicNoise(t * 0.12, leaf.id === 'A' ? 2 : 7) * 12
-          const gust = organicNoise(t * 0.06, 3) * 10 * leaf.swayDirection
-          const targetX = targetBaseX + sway1 + sway2 + gust
+          // Wide slow wander — leaf roams across large area
+          const wander = organicNoise(t * 0.04, leaf.id === 'A' ? 1 : 6) * vw * 0.15
+          // Medium sway — pushed by gusts
+          const sway1 = organicNoise(t * 0.25, leaf.id === 'A' ? 2 : 7) * 40
+          // Quick flutter — leaf edge vibration
+          const sway2 = organicNoise(t * 0.5, leaf.id === 'A' ? 3 : 8) * 15
+          // Directional wind gust — pushes left or right for a few seconds
+          const gust = organicNoise(t * 0.06, 3) * 20 * leaf.swayDirection
+          // Occasional big sideways drift
+          const bigDrift = organicNoise(t * 0.025, leaf.id === 'A' ? 4 : 9) * vw * 0.08
 
-          leaf.vx += (targetX - leaf.x) * 0.003
-          leaf.vx *= 0.97
+          const targetX = targetBaseX + wander + sway1 + sway2 + gust + bigDrift
+
+          leaf.vx += (targetX - leaf.x) * 0.004
+          leaf.vx *= 0.96
           leaf.x += leaf.vx
           leaf.x = Math.max(20, Math.min(vw - 40, leaf.x))
 
@@ -359,10 +374,10 @@ export default function DriedLeaves() {
           leaf.rotateXVel *= 0.96
           leaf.rotateX += leaf.rotateXVel
 
-          // rotateY (yaw): moving sideways = show edge
+          // rotateY (yaw): moving sideways = show edge — more response since wider drift
           // Moving right = rotateY negative (showing left edge of leaf)
-          const velocityYaw = Math.max(-45, Math.min(45, -leaf.vx * 150))
-          const edgeDrift = organicNoise(t * 0.15, leaf.id === 'A' ? 12 : 17) * 15
+          const velocityYaw = Math.max(-60, Math.min(60, -leaf.vx * 180))
+          const edgeDrift = organicNoise(t * 0.15, leaf.id === 'A' ? 12 : 17) * 20
           const targetRotateY = velocityYaw + edgeDrift
           leaf.rotateYVel += (targetRotateY - leaf.rotateY) * 0.006
           leaf.rotateYVel *= 0.96
