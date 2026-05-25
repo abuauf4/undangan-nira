@@ -2046,6 +2046,12 @@ function HomeInner() {
   // Keep module-level data in sync for section components
   useEffect(() => { setWeddingData(data) }, [data])
 
+  // Set initial history state so back button works from the start
+  useEffect(() => {
+    const initialViewState = skipCover ? initialView : 'cover'
+    window.history.replaceState({ view: initialViewState }, '')
+  }, [skipCover, initialView])
+
   const handlePreloaderComplete = useCallback(() => setIsLoading(false), [])
 
   const handleOpenStart = useCallback(() => {
@@ -2057,6 +2063,8 @@ function HomeInner() {
 
   const handleOpen = useCallback(() => {
     setView('hub')
+    // Push hub state so back button works
+    window.history.pushState({ view: 'hub' }, '')
   }, [])
 
   const handleViewChoose = useCallback((newView: 'story' | 'info') => {
@@ -2064,6 +2072,28 @@ function HomeInner() {
     // Kill any existing ScrollTrigger instances
     ScrollTrigger.getAll().forEach(st => st.kill())
     setView(newView)
+    // Push state so browser back returns to hub
+    window.history.pushState({ view: newView }, '')
+  }, [])
+
+  // ─── Handle browser back button ───
+  // When user presses back, return to hub instead of exiting the site
+  useEffect(() => {
+    const onPopState = (e: PopStateEvent) => {
+      const prev = e.state?.view
+      if (prev === 'hub' || prev === 'story' || prev === 'info') {
+        window.scrollTo(0, 0)
+        ScrollTrigger.getAll().forEach(st => st.kill())
+        setView(prev)
+      } else {
+        // No valid state — go back to hub
+        window.scrollTo(0, 0)
+        ScrollTrigger.getAll().forEach(st => st.kill())
+        setView('hub')
+      }
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
   const toggleMusic = useCallback(() => {
