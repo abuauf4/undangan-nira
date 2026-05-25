@@ -8,15 +8,16 @@ import { prefersReducedMotion } from '@/lib/animations'
  *  DRIED LEAVES — Two journeys, one destination
  * ═══════════════════════════════════════════════════════════
  *
- *  Two dried leaves drift through the entire invitation.
+ *  Two dried leaves fall through the entire invitation.
  *  Leaf A tends to sway RIGHT — the groom's journey
  *  Leaf B tends to sway LEFT  — the bride's journey
  *
- *  They drift with natural buoyancy — carefully designed imperfection.
- *  Terombang-ambing angin: kadang ke kanan, kadang ke kiri, kadang maju.
- *  Two different directions, two different lives.
+ *  They fall slowly — carried by wind, going wherever it takes them.
+ *  Kadang ke kanan, kadang ke kiri — angin yang menentukan.
+ *  When they fall off the bottom, they reappear at the top.
+ *  Like life's journey — always moving, sometimes returning.
  *
- *  Only at the closing section do they finally descend —
+ *  Only at the closing section do they finally descend together —
  *  falling gently to the same place, side by side.
  *  Because now, both are finally together.
  *
@@ -49,7 +50,6 @@ interface Leaf {
 
 /**
  * Simple value noise — multiple sine waves at different frequencies
- * Creates organic, non-repeating motion that feels alive
  */
 function organicNoise(t: number, seed: number): number {
   return (
@@ -58,13 +58,6 @@ function organicNoise(t: number, seed: number): number {
     Math.sin(t * 2.7 + seed * 0.7) * 0.15 +
     Math.sin(t * 4.1 + seed * 3.3) * 0.05
   )
-}
-
-/**
- * Smooth ease-in-out cubic
- */
-function easeInOutCubic(p: number): number {
-  return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
 }
 
 export default function DriedLeaves() {
@@ -84,7 +77,6 @@ export default function DriedLeaves() {
     el.style.top = '0'
 
     if (id === 'A') {
-      // Leaf A — elongated, warm brown, slightly curled — groom's leaf
       el.innerHTML = `
         <svg width="30" height="40" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M18 0C18 0 28 8 31 18C34 28 26 44 18 48C10 44 2 28 5 18C8 8 18 0 18 0Z"
@@ -99,7 +91,6 @@ export default function DriedLeaves() {
         </svg>
       `
     } else {
-      // Leaf B — rounder, deeper brown, golden edges — bride's leaf
       el.innerHTML = `
         <svg width="28" height="38" viewBox="0 0 34 46" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M17 0C17 0 27 6 31 16C34 26 26 40 17 46C8 40 0 26 3 16C6 6 17 0 17 0Z"
@@ -125,8 +116,9 @@ export default function DriedLeaves() {
     const vw = window.innerWidth
     const vh = window.innerHeight
 
+    // Start from top — di luar viewport, baru masuk
     const startX = id === 'A' ? vw * 0.25 : vw * 0.75
-    const startY = vh * 0.15
+    const startY = id === 'A' ? -60 : -40 // di atas viewport
 
     return {
       id,
@@ -159,15 +151,14 @@ export default function DriedLeaves() {
     const leafB = createLeaf(container, 'B')
     leavesRef.current = [leafA, leafB]
 
-    // Track scroll progress for proximity effect
+    // Track scroll for proximity + parallax
     const handleScroll = () => {
       const docHeight = document.documentElement.scrollHeight - window.innerHeight
       scrollProgressRef.current = docHeight > 0 ? window.scrollY / docHeight : 0
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
 
-    // Listen for closing start — leaves begin falling when closing section begins
-    // Daun mulai jatuh pas closing dimulai, bersatu sebelum tinta melebur
+    // Listen for closing start — leaves converge when closing begins
     const onClosingStart = () => {
       if (closingTriggeredRef.current) return
       closingTriggeredRef.current = true
@@ -186,37 +177,34 @@ export default function DriedLeaves() {
 
     const animate = (time: number) => {
       if (!startTime) startTime = time
-      const t = (time - startTime) * 0.001 // seconds
+      const t = (time - startTime) * 0.001
 
       const vw = window.innerWidth
       const vh = window.innerHeight
 
-      // ─── Closing trigger handled by 'closing-sequence-start' event ───
-      // Daun mulai jatuh pas closing dimulai (handwriting masih jalan)
-
       const closingSection = document.querySelector('[data-section="closing"]')
-
-      // ─── Scroll-based proximity ───
       const scrollP = scrollProgressRef.current
       const proximity = Math.min(1, Math.max(0, scrollP * 1.3 - 0.1))
       const togetherX = vw * 0.5
 
+      // Scroll-based parallax offset — daun ikut turun pas scroll
+      // Tapi lebih pelan dari scroll, jadi keliatan melayang
+      const scrollParallax = window.scrollY * 0.08
+
       leavesRef.current.forEach(leaf => {
-        // ─── Fade in gently at start ───
+        // ─── Fade in at start ───
         if (!leaf.isClosing && leaf.opacity < 0.35) {
           leaf.opacity = Math.min(0.35, leaf.opacity + 0.002)
         }
 
         if (leaf.isClosing) {
           // ═══════════════════════════════════════════════════════════
-          //  CLOSING: Turun pelan aja, goyang-goyang
-          //  Ga ada nukik, ga ada phase — cuma jatuh perlahan
+          //  CLOSING: Turun pelan, menuju titik yang sama
           // ═══════════════════════════════════════════════════════════
           leaf.closingProgress = Math.min(1, leaf.closingProgress + 0.0018)
 
           const p = leaf.closingProgress
 
-          // Target: center bottom of closing section, side by side
           const sideOffset = leaf.id === 'A' ? -10 : 10
           const targetX = togetherX + sideOffset
           const closingRect = closingSection?.getBoundingClientRect()
@@ -224,16 +212,14 @@ export default function DriedLeaves() {
             ? closingRect.bottom - 80
             : vh * 0.85
 
-          // Horizontal: goyang pelan yang makin kecil, pelan-pelan menuju tengah
+          // Horizontal: goyang pelan yang makin kecil
           const swayAmplitude = 15 * (1 - p)
           const swayFreq = leaf.id === 'A' ? 0.3 : 0.35
           const horizontalSway = organicNoise(t * swayFreq, leaf.id === 'A' ? 10 : 15) * swayAmplitude
 
-          // Simple linear convergence — ga ada smoothstep, ga ada fase
           leaf.x = leaf.closingStartX + (targetX - leaf.closingStartX) * p + horizontalSway
 
-          // Vertical: turun pelan aja — konsisten dari awal sampai akhir
-          // Ga ada percepatan, ga ada deselerasi, cuma turun steady
+          // Vertical: turun pelan, steady
           leaf.y = leaf.closingStartY + (targetY - leaf.closingStartY) * p
 
           // Rotation: goyang pelan yang mereda
@@ -241,86 +227,76 @@ export default function DriedLeaves() {
           const restRotation = leaf.id === 'A' ? 5 : -7
           leaf.rotation = leaf.closingStartRotation + (restRotation - leaf.closingStartRotation) * p + rotationSway
 
-          // Scale: tenang aja
           leaf.scale = 0.65 + p * 0.15
-
-          // Opacity: pelan-pelan lebih jelas
           leaf.opacity = 0.3 + p * 0.2
 
         } else {
           // ═══════════════════════════════════════════════════════════
-          //  DRIFTING: Terombang-ambing angin
-          //  Kadang ke kanan, kadang ke kiri, kadang ke depan
-          //  Dua arah berbeda — dua perjalanan berbeda
+          //  DRIFTING: Jatuh pelan, terombang-ambing angin
+          //  Daun jatuh perlahan — kalau keluar bawah, balik ke atas
           // ═══════════════════════════════════════════════════════════
 
-          // ─── Buoyancy system ───
-          const restY = vh * 0.35
-          const buoyancy = (leaf.y - restY) * -0.002
-          const gravity = 0.002
-
-          leaf.vy += gravity + buoyancy
-          leaf.vy += organicNoise(t * 0.25, leaf.id === 'A' ? 0 : 5) * 0.005
-          leaf.vy *= 0.98
+          // ─── Gravity — gentle fall ───
+          leaf.vy += 0.003
+          // Organic vertical drift
+          leaf.vy += organicNoise(t * 0.25, leaf.id === 'A' ? 0 : 5) * 0.004
+          // Damping
+          leaf.vy *= 0.985
           leaf.y += leaf.vy
 
-          // Never reach the bottom — buoyancy keeps them floating
-          const maxFloatY = vh * 0.55
-          if (leaf.y > maxFloatY) {
-            leaf.y = maxFloatY
-            leaf.vy = Math.min(0, leaf.vy)
+          // Wrap around — kalau keluar bawah, balik ke atas
+          // Jadi daun selalu jatuh, ga pernah berenti di tengah
+          if (leaf.y > vh + 50) {
+            leaf.y = -60
+            leaf.vy = 0
           }
-          if (leaf.y < -40) {
-            leaf.y = -40
-            leaf.vy = Math.max(0, leaf.vy)
+          if (leaf.y < -80) {
+            leaf.y = -60
+            leaf.vy = 0
           }
 
-          // ─── Horizontal drift — terombang-ambing angin ───
+          // ─── Horizontal drift ───
           const baseX = leaf.id === 'A' ? vw * 0.25 : vw * 0.75
-
-          // Target X shifts closer together as scroll progresses
           const soloX = baseX
           const closeX = togetherX + (leaf.id === 'A' ? -40 : 40)
           const targetBaseX = soloX + (closeX - soloX) * proximity * 0.6
 
-          // Kadang ke kanan, kadang ke kiri — angin sangat pelan
           const sway1 = organicNoise(t * 0.3, leaf.id === 'A' ? 1 : 6) * 25
           const sway2 = organicNoise(t * 0.12, leaf.id === 'A' ? 2 : 7) * 12
           const gust = organicNoise(t * 0.06, 3) * 10 * leaf.swayDirection
 
           const targetX = targetBaseX + sway1 + sway2 + gust
 
-          // Smooth approach — angin pelan
           leaf.vx += (targetX - leaf.x) * 0.003
           leaf.vx *= 0.97
           leaf.x += leaf.vx
 
-          // Keep within bounds — ga keluar layar
           leaf.x = Math.max(20, Math.min(vw - 40, leaf.x))
 
-          // ─── Rotation — very gentle tilt ───
+          // ─── Rotation ───
           const moveRotation = leaf.vx * 1.5
           const breatheRotation = organicNoise(t * 0.4, leaf.id === 'A' ? 4 : 9) * 4
           leaf.rotationVel += (moveRotation + breatheRotation - leaf.rotationVel) * 0.02
           leaf.rotation += leaf.rotationVel
 
-          // ─── Scale — gentle breathing ───
+          // ─── Scale ───
           const forwardDrift = organicNoise(t * 0.2, leaf.id === 'A' ? 3 : 8)
           const targetScale = 0.65 + forwardDrift * 0.2 + proximity * 0.08
           leaf.scale += (targetScale - leaf.scale) * 0.015
 
-          // ─── Opacity — very translucent ───
+          // ─── Opacity ───
           const scaleNorm = (leaf.scale - 0.65) / 0.28
           leaf.opacity = 0.25 + scaleNorm * 0.1 + proximity * 0.08
         }
 
-        // Apply transform
-        const transform = `translate3d(${leaf.x}px, ${leaf.y}px, 0) rotate(${leaf.rotation}deg) scale(${leaf.scale})`
+        // Apply transform — add scroll parallax to Y position
+        const displayY = leaf.y + scrollParallax
+        const transform = `translate3d(${leaf.x}px, ${displayY}px, 0) rotate(${leaf.rotation}deg) scale(${leaf.scale})`
         leaf.element.style.transform = transform
         leaf.element.style.opacity = String(leaf.opacity)
       })
 
-      // Check if both leaves have united — dispatch event so dust dissolve can start
+      // Check if both leaves have united
       if (!leavesUnitedRef.current && closingTriggeredRef.current) {
         const allArrived = leavesRef.current.every(l => l.isClosing && l.closingProgress >= 1)
         if (allArrived) {
