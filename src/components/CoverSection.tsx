@@ -185,16 +185,16 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
       />
       <div className="hero-overlay absolute inset-0" />
 
-      {/* Vignette — dark warm edges */}
+      {/* Vignette — dark warm edges, stronger for text readability */}
       <div className="absolute inset-0 pointer-events-none z-[1]" style={{
-        background: 'radial-gradient(ellipse at center, transparent 30%, rgba(26,21,16,0.5) 100%)'
+        background: 'radial-gradient(ellipse at center, transparent 15%, rgba(26,21,16,0.6) 100%)'
       }} />
 
       {/* Subtle golden light drift — like moonlight shifting */}
       <div
         className="absolute inset-0 pointer-events-none z-[2]"
         style={{
-          background: 'radial-gradient(ellipse, rgba(201,169,110,0.08) 0%, transparent 50%)',
+          background: 'radial-gradient(ellipse, rgba(201,169,110,0.04) 0%, transparent 50%)',
           animation: 'goldenLightDrift 14s ease-in-out infinite alternate',
         }}
       />
@@ -203,16 +203,16 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
       <div
         className="absolute inset-0 pointer-events-none z-[2.5]"
         style={{
-          background: 'radial-gradient(ellipse at 50% 40%, rgba(201,169,110,0.06) 0%, transparent 55%)',
+          background: 'radial-gradient(ellipse at 50% 40%, rgba(201,169,110,0.03) 0%, transparent 55%)',
           animation: 'warmGlow 6s ease-in-out infinite alternate',
         }}
       />
 
-      {/* Light leak streak — warm golden ray from top-left, like sunlight through a window */}
+      {/* Light leak streak — warm golden ray from top-left */}
       <div
         className="absolute inset-0 pointer-events-none z-[2.8]"
         style={{
-          background: 'linear-gradient(135deg, rgba(201,169,110,0.08) 0%, rgba(201,169,110,0.02) 30%, transparent 50%)',
+          background: 'linear-gradient(135deg, rgba(201,169,110,0.04) 0%, rgba(201,169,110,0.01) 30%, transparent 50%)',
           animation: 'goldenLightDrift 18s ease-in-out infinite alternate-reverse',
         }}
       />
@@ -222,7 +222,7 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
         className="absolute inset-0 pointer-events-none z-[2.6] mix-blend-screen"
         style={{
           backgroundImage: "url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"150\" height=\"150\" viewBox=\"0 0 150 150\"%3E%3Cfilter id=\"d\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.7\" numOctaves=\"2\" stitchTiles=\"stitch\"/%3E%3C/filter%3E%3Crect width=\"100%25\" height=\"100%25\" filter=\"url(%23d)\" opacity=\"0.02\"/%3E%3C/svg%3E')",
-          opacity: 0.3,
+          opacity: 0.15,
         }}
       />
 
@@ -231,7 +231,7 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
         className="absolute inset-0 pointer-events-none z-[1.5] mix-blend-overlay"
         style={{
           backgroundImage: "url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\" viewBox=\"0 0 200 200\"%3E%3Cfilter id=\"noise\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" stitchTiles=\"stitch\"/%3E%3C/filter%3E%3Crect width=\"100%25\" height=\"100%25\" filter=\"url(%23noise)\" opacity=\"0.04\"/%3E%3C/svg%3E')",
-          opacity: 0.4,
+          opacity: 0.3,
         }}
       />
 
@@ -377,16 +377,17 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
         </div>
 
         <p className="tracking-[0.35em] uppercase text-[10px] sm:text-xs mb-4"
-          style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', opacity: 0.7 }}>
+          style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', opacity: 0.85, textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
           The Wedding Invitation of
         </p>
 
         {/* Names with handwriting reveal */}
-        <h2
+          <h2
           className="text-4xl sm:text-5xl mb-3"
           style={{
             fontFamily: 'var(--font-script)',
             color: 'var(--gold-light)',
+            textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(201,169,110,0.2)',
             clipPath: 'inset(0 100% 0 0)',
             animation: 'handwritingReveal 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards',
           }}
@@ -398,7 +399,7 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
           <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, var(--gold), transparent)' }} />
         </div>
 
-        <p className="text-sm tracking-[0.2em] mb-6" style={{ fontFamily: 'var(--font-serif)', color: 'var(--cream)', opacity: 0.7 }}>
+        <p className="text-sm tracking-[0.2em] mb-6" style={{ fontFamily: 'var(--font-serif)', color: 'var(--cream)', opacity: 0.85, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
           05 . 07 . 2026
         </p>
 
@@ -406,13 +407,13 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
         <div className="mb-10">
           <p
             className="text-[10px] sm:text-xs tracking-[0.25em] uppercase mb-1"
-            style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', opacity: 0.6 }}
+            style={{ fontFamily: 'var(--font-body)', color: 'var(--gold-light)', opacity: 0.75, textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}
           >
             Kepada Yth.
           </p>
           <p
             className="text-base sm:text-lg italic"
-            style={{ fontFamily: 'var(--font-serif)', color: 'var(--cream)', opacity: 0.85 }}
+            style={{ fontFamily: 'var(--font-serif)', color: 'var(--cream)', opacity: 0.9, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}
           >
             {guestPrefix && <span>{guestPrefix} </span>}{guestName || 'Tamu Undangan'}{guestSuffix && <span> {guestSuffix}</span>}
           </p>
@@ -424,7 +425,7 @@ export default function CoverSection({ onOpen, onOpenStart }: CoverSectionProps)
           disabled={isOpening}
           className="px-8 py-3 border border-[var(--gold)]/60 text-[var(--gold-light)] tracking-[0.3em] uppercase text-[10px] sm:text-xs
             hover:bg-[var(--gold)]/10 hover:border-[var(--gold)]/80 transition-all duration-700 cursor-pointer"
-          style={{ fontFamily: 'var(--font-body)' }}
+          style={{ fontFamily: 'var(--font-body)', textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}
         >
           {isOpening ? '' : 'Buka Undangan'}
         </button>

@@ -812,9 +812,10 @@ html {
   position: relative;
   background: linear-gradient(
     to bottom,
-    rgba(44, 34, 24, 0.4) 0%,
-    rgba(44, 34, 24, 0.55) 50%,
-    rgba(44, 34, 24, 0.75) 100%
+    rgba(30, 22, 14, 0.6) 0%,
+    rgba(30, 22, 14, 0.72) 40%,
+    rgba(30, 22, 14, 0.85) 70%,
+    rgba(30, 22, 14, 0.92) 100%
   );
 }
 
