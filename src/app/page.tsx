@@ -1845,47 +1845,50 @@ function ClosingSection({ onGoToInfo }: { onGoToInfo?: () => void }) {
             if (finalRef.current) gsap.set(finalRef.current, { opacity: 1 })
             const finalEnd = closingHandwriting(finalRef.current, 0.06, 0.15, footerEnd + 0.8)
 
-            // ═══ PHASE 2: DUST DISSOLVE ═══
-            const dustDelay = finalEnd + 2.5
+            // ═══ PHASE 2: DUST DISSOLVE — triggered when leaves unite ═══
+            // Daun bersatu dulu, baru tinta melebur
+            const startDustDissolve = () => {
+              const dustDelay = 0.3 // small delay after leaves unite
 
-            // Notify DriedLeaves to start converging — sync with text melting
-            window.dispatchEvent(new CustomEvent('dust-dissolve-start'))
+              const titleDust = dustDissolve(titleRef.current, dustDelay)
+              const subtitleDust = dustDissolve(subtitleRef.current, dustDelay + 0.4)
+              const transDust = dustDissolve(transRef.current, dustDelay + 0.8)
+              const footerDust = dustDissolve(footerRef.current, dustDelay + 1.2)
+              const finalDust = dustDissolve(finalRef.current, dustDelay + 1.6)
 
-            const titleDust = dustDissolve(titleRef.current, dustDelay)
-            const subtitleDust = dustDissolve(subtitleRef.current, dustDelay + 0.4)
-            const transDust = dustDissolve(transRef.current, dustDelay + 0.8)
-            const footerDust = dustDissolve(footerRef.current, dustDelay + 1.2)
-            const finalDust = dustDissolve(finalRef.current, dustDelay + 1.6)
+              // Divider fades
+              if (dividerRef.current) {
+                gsap.to(dividerRef.current, { opacity: 0, duration: 0.8, ease: 'power2.in', delay: dustDelay + 1.0 })
+              }
 
-            // Divider fades
-            if (dividerRef.current) {
-              gsap.to(dividerRef.current, { opacity: 0, duration: 0.8, ease: 'power2.in', delay: dustDelay + 1.0 })
-            }
+              // ═══ AFTER DUST: Only the doa remains ═══
+              const afterDust = Math.max(titleDust, subtitleDust, transDust, footerDust, finalDust) + 1.0
 
-            // ═══ AFTER DUST: Only the doa remains ═══
-            const afterDust = Math.max(titleDust, subtitleDust, transDust, footerDust, finalDust) + 1.0
+              if (dateRef.current) {
+                gsap.to(dateRef.current, { opacity: 1, duration: 2, ease: 'power2.out', delay: afterDust,
+                  onComplete: () => {
+                    // Resume auto-scroll after closing animation is fully done
+                    window.dispatchEvent(new CustomEvent('closing-sequence-complete'))
 
-            if (dateRef.current) {
-              gsap.to(dateRef.current, { opacity: 1, duration: 2, ease: 'power2.out', delay: afterDust,
-                onComplete: () => {
-                  // Resume auto-scroll after closing animation is fully done
-                  window.dispatchEvent(new CustomEvent('closing-sequence-complete'))
-
-                  // CTA button fade-in after credit appears
-                  if (ctaRef.current && onGoToInfo) {
-                    gsap.to(ctaRef.current, { opacity: 1, duration: 1.2, ease: 'power2.out', delay: 0.5 })
+                    // CTA button fade-in after credit appears
+                    if (ctaRef.current && onGoToInfo) {
+                      gsap.to(ctaRef.current, { opacity: 1, duration: 1.2, ease: 'power2.out', delay: 0.5 })
+                    }
                   }
-                }
-              })
-            } else {
-              // No credit element — just resume after dust settles
-              setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('closing-sequence-complete'))
-                if (ctaRef.current && onGoToInfo) {
-                  gsap.to(ctaRef.current, { opacity: 1, duration: 1.2, ease: 'power2.out' })
-                }
-              }, (afterDust + 2) * 1000)
+                })
+              } else {
+                // No credit element — just resume after dust settles
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent('closing-sequence-complete'))
+                  if (ctaRef.current && onGoToInfo) {
+                    gsap.to(ctaRef.current, { opacity: 1, duration: 1.2, ease: 'power2.out' })
+                  }
+                }, (afterDust + 2) * 1000)
+              }
             }
+
+            // Wait for leaves to unite before starting dust dissolve
+            window.addEventListener('leaves-united', startDustDissolve, { once: true })
           }
         })
       },

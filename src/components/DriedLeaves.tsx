@@ -72,6 +72,7 @@ export default function DriedLeaves() {
   const leavesRef = useRef<Leaf[]>([])
   const animFrameRef = useRef<number>(0)
   const closingTriggeredRef = useRef(false)
+  const leavesUnitedRef = useRef(false)
   const scrollProgressRef = useRef(0)
 
   const createLeafElement = (id: 'A' | 'B'): HTMLDivElement => {
@@ -165,8 +166,9 @@ export default function DriedLeaves() {
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
 
-    // Listen for dust dissolve — leaves start converging when text melts
-    const onDustDissolveStart = () => {
+    // Listen for closing start — leaves begin falling when closing section begins
+    // Daun mulai jatuh pas closing dimulai, bersatu sebelum tinta melebur
+    const onClosingStart = () => {
       if (closingTriggeredRef.current) return
       closingTriggeredRef.current = true
       leavesRef.current.forEach(leaf => {
@@ -178,7 +180,7 @@ export default function DriedLeaves() {
         leaf.closingStartScale = leaf.scale
       })
     }
-    window.addEventListener('dust-dissolve-start', onDustDissolveStart)
+    window.addEventListener('closing-sequence-start', onClosingStart)
 
     let startTime = 0
 
@@ -189,9 +191,8 @@ export default function DriedLeaves() {
       const vw = window.innerWidth
       const vh = window.innerHeight
 
-      // ─── Closing trigger is handled by custom event ───
-      // DriedLeaves listens for 'dust-dissolve-start' so leaves converge
-      // in sync with the text melting animation
+      // ─── Closing trigger handled by 'closing-sequence-start' event ───
+      // Daun mulai jatuh pas closing dimulai (handwriting masih jalan)
 
       // ─── Scroll-based proximity ───
       const scrollP = scrollProgressRef.current
@@ -209,7 +210,7 @@ export default function DriedLeaves() {
           //  CLOSING: Turun pelan aja, goyang-goyang
           //  Ga ada nukik, ga ada phase — cuma jatuh perlahan
           // ═══════════════════════════════════════════════════════════
-          leaf.closingProgress = Math.min(1, leaf.closingProgress + 0.001)
+          leaf.closingProgress = Math.min(1, leaf.closingProgress + 0.0018)
 
           const p = leaf.closingProgress
 
@@ -317,6 +318,15 @@ export default function DriedLeaves() {
         leaf.element.style.opacity = String(leaf.opacity)
       })
 
+      // Check if both leaves have united — dispatch event so dust dissolve can start
+      if (!leavesUnitedRef.current && closingTriggeredRef.current) {
+        const allArrived = leavesRef.current.every(l => l.isClosing && l.closingProgress >= 1)
+        if (allArrived) {
+          leavesUnitedRef.current = true
+          window.dispatchEvent(new CustomEvent('leaves-united'))
+        }
+      }
+
       animFrameRef.current = requestAnimationFrame(animate)
     }
 
@@ -325,7 +335,7 @@ export default function DriedLeaves() {
     return () => {
       cancelAnimationFrame(animFrameRef.current)
       window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('dust-dissolve-start', onDustDissolveStart)
+      window.removeEventListener('closing-sequence-start', onClosingStart)
       leavesRef.current.forEach(l => l.element.remove())
       leavesRef.current = []
     }
