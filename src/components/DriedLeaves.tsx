@@ -212,8 +212,8 @@ export default function DriedLeaves() {
           // KURANGI scrollParallax karena leaf.y ditambah scrollParallax saat render
           // Tanpa pengurangan, daun visualnya offset ratusan px ke bawah
           const targetY = closingRect
-            ? closingRect.top + closingRect.height - scrollParallax
-            : vh - scrollParallax
+            ? closingRect.top + closingRect.height * 0.9 - scrollParallax
+            : vh * 0.9 - scrollParallax
 
           // Horizontal: goyang pelan yang makin kecil
           const swayAmplitude = 15 * (1 - p)
@@ -245,35 +245,34 @@ export default function DriedLeaves() {
           //  kadang lemah (daun jatuh lebih dalam).
           // ═══════════════════════════════════════════════════════════
 
-          // ─── Spring equilibrium — titik keseimbangan di tengah viewport ───
-          // Daun punya "rumah" di sekitar 42% viewport height
-          // Gravitasi narik ke bawah, spring narik ke equilibrium
-          // Ini bikin daun natural mengambang di tengah
-          const equilibrium = vh * 0.42
-          const displacement = leaf.y - equilibrium
-          const springForce = -displacement * 0.0003 // lembut banget, biar ga kaku
-
-          // ─── Gravity — gentle fall ───
+          // ─── Gravity — gentle fall, daun jatuh pelan dari atas ───
           const gravity = 0.003
-          leaf.vy += gravity + springForce
+          leaf.vy += gravity
+
+          // ─── Spring equilibrium — cuma narik ke atas kalo daun kebawah ───
+          // Spring cuma aktif kalo daun udah di bawah 45% viewport
+          // Jadi daun jatuh natural dari atas, baru kena spring pas mau lewat tengah
+          const equilibrium = vh * 0.42
+          if (leaf.y > equilibrium) {
+            const displacement = leaf.y - equilibrium
+            leaf.vy -= displacement * 0.0004 // lembut, narik balik ke atas
+          }
 
           // ─── Organic wind gusts — angin yang kadang kencang kadang lemah ───
-          // Ini yang bikin daun naik turun — bukan updraft zone,
-          // tapi gust yang dorong ke atas secara periodik
           const windCycle = organicNoise(t * 0.08 + (leaf.id === 'A' ? 0 : 3), 20)
-          const gustStrength = windCycle > 0.2 ? windCycle * 0.008 : 0 // cuma dorong kalo angin cukup kencang
+          const gustStrength = windCycle > 0.2 ? windCycle * 0.008 : 0
           leaf.vy -= gustStrength
 
           // ─── Soft boundaries — daun ga keluar viewport ───
-          // Bawah: angin dari bawah mulai dorong kalo daun mendekati 75%
+          // Bawah: angin dari bawah dorong balik kalo daun mendekati 70%
           if (leaf.y > vh * 0.7) {
             const depth = (leaf.y - vh * 0.7) / (vh * 0.3)
-            leaf.vy -= depth * 0.02 // angin dorong ke atas makin kuat
+            leaf.vy -= depth * 0.02
           }
-          // Atas: pelan-pelan dorong turun kalo daun terlalu atas
-          if (leaf.y < vh * 0.1) {
-            const ceilingDepth = 1 - (leaf.y / (vh * 0.1))
-            leaf.vy += ceilingDepth * 0.015
+          // Atas: JANGAN dorong turun — biar daun jatuh natural dari atas
+          // Cegah keluar viewport aja
+          if (leaf.y < -50) {
+            leaf.vy = Math.max(leaf.vy, 0) // stop upward velocity
           }
 
           // Organic vertical drift — breathing
@@ -282,14 +281,10 @@ export default function DriedLeaves() {
           leaf.vy *= 0.985
           leaf.y += leaf.vy
 
-          // Safety clamp
+          // Safety clamp bawah aja — atas biar daun jatuh natural
           if (leaf.y > vh - 20) {
             leaf.y = vh - 20
             leaf.vy = Math.min(0, leaf.vy)
-          }
-          if (leaf.y < -50) {
-            leaf.y = -50
-            leaf.vy = Math.max(0, leaf.vy)
           }
 
           // ─── Horizontal drift ───
