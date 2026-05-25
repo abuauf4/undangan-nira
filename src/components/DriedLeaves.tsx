@@ -185,10 +185,10 @@ export default function DriedLeaves() {
       const closingRect = closingSection?.getBoundingClientRect()
       const scrollParallax = window.scrollY * 0.08
 
-      // Landing zone: 90% of closing section
-      const landBaseY = closingRect
-        ? closingRect.top + closingRect.height * 0.9 - scrollParallax
-        : window.innerHeight * 0.9 - scrollParallax
+      // Landing zone: 90% of closing section (VISUAL position on screen)
+      const visualLandY = closingRect
+        ? closingRect.top + closingRect.height * 0.9
+        : window.innerHeight * 0.9
 
       const centerX = vw * 0.5
 
@@ -202,15 +202,24 @@ export default function DriedLeaves() {
         leaf.closingStartRotateZ = leaf.rotateZ
         leaf.closingStartScale = leaf.scale
 
+        // Check visual position: y + scrollParallax = where leaf APPEARS on screen
+        const visualNowY = leaf.y + scrollParallax
+
         // Stacking: Leaf A at left-of-center, Leaf B on top with offset
-        // CRITICAL: landY must be >= leaf.y so leaf ALWAYS falls DOWN, never goes back up
+        // Use VISUAL check: if leaf is already visually below target, stay put
         if (leaf.id === 'A') {
           leaf.landX = centerX - 18
-          leaf.landY = Math.max(leaf.y, landBaseY)  // never go UP
+          // Only go down visually; convert visual target back to y coordinate
+          leaf.landY = visualNowY >= visualLandY
+            ? leaf.y  // already at/below landing visually — stay put
+            : visualLandY - scrollParallax  // fall to landing (in y coords)
           leaf.landRotateZ = 5 + Math.random() * 10
         } else {
           leaf.landX = centerX + 10
-          leaf.landY = Math.max(leaf.y, landBaseY - 5)  // never go UP
+          const visualLandB = visualLandY - 5  // slightly higher = stacked on top
+          leaf.landY = visualNowY >= visualLandB
+            ? leaf.y  // already at/below landing visually — stay put
+            : visualLandB - scrollParallax
           leaf.landRotateZ = -8 + Math.random() * 6
         }
       })
@@ -257,11 +266,8 @@ export default function DriedLeaves() {
           // X: ease toward landing spot
           leaf.x = leaf.closingStartX + (leaf.landX - leaf.closingStartX) * ease
 
-          // Y: only move DOWN — if leaf is already at or below landing, stay put
-          if (leaf.landY > leaf.closingStartY) {
-            leaf.y = leaf.closingStartY + (leaf.landY - leaf.closingStartY) * ease
-          }
-          // else: leaf already at/below landing height, don't move up
+          // Y: ease toward landing spot (only moves down visually)
+          leaf.y = leaf.closingStartY + (leaf.landY - leaf.closingStartY) * ease
 
           // Gentle sway during descent — diminishing
           const swayAmp = 15 * (1 - p)
