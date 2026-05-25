@@ -205,14 +205,14 @@ export default function DriedLeaves() {
 
         if (leaf.isClosing) {
           // ═══════════════════════════════════════════════════════════
-          //  CLOSING: Jatuh perlahan ke tempat yang sama
-          //  Kayak daun beneran jatuh — melayang, goyang, mendarat lembut
+          //  CLOSING: Turun pelan aja, goyang-goyang
+          //  Ga ada nukik, ga ada phase — cuma jatuh perlahan
           // ═══════════════════════════════════════════════════════════
-          leaf.closingProgress = Math.min(1, leaf.closingProgress + 0.0015)
+          leaf.closingProgress = Math.min(1, leaf.closingProgress + 0.001)
 
           const p = leaf.closingProgress
 
-          // Both converge to the center, side by side at the bottom of closing section
+          // Target: center bottom of closing section, side by side
           const sideOffset = leaf.id === 'A' ? -10 : 10
           const targetX = togetherX + sideOffset
           const closingRect = closingSection?.getBoundingClientRect()
@@ -220,46 +220,27 @@ export default function DriedLeaves() {
             ? closingRect.bottom - 80
             : vh * 0.85
 
-          // ═══ Physics-based descent — bukan linear interpolation ═══
-          // Daun jatuh pelan, melayang, kadang nyangkah sedikit
-          // Baru di akhir mendarat lembut
+          // Horizontal: goyang pelan yang makin kecil, pelan-pelan menuju tengah
+          const swayAmplitude = 15 * (1 - p)
+          const swayFreq = leaf.id === 'A' ? 0.3 : 0.35
+          const horizontalSway = organicNoise(t * swayFreq, leaf.id === 'A' ? 10 : 15) * swayAmplitude
 
-          // Horizontal: masih goyang pelan, semakin lama semakin ke tengah
-          const swayAmplitude = 18 * (1 - p * p) // goyang makin kecil seiring waktu
-          const swayFreq = leaf.id === 'A' ? 0.35 : 0.4
-          const swayPhase = leaf.id === 'A' ? 0 : 2.5
-          const horizontalSway = organicNoise(t * swayFreq + swayPhase, leaf.id === 'A' ? 10 : 15) * swayAmplitude
+          // Simple linear convergence — ga ada smoothstep, ga ada fase
+          leaf.x = leaf.closingStartX + (targetX - leaf.closingStartX) * p + horizontalSway
 
-          // Horizontal convergence: pelan-pelan menuju target
-          const horizontalEase = p * p * (3 - 2 * p) // smoothstep
-          leaf.x = leaf.closingStartX + (targetX - leaf.closingStartX) * horizontalEase + horizontalSway
+          // Vertical: turun pelan aja — konsisten dari awal sampai akhir
+          // Ga ada percepatan, ga ada deselerasi, cuma turun steady
+          leaf.y = leaf.closingStartY + (targetY - leaf.closingStartY) * p
 
-          // Vertical: jatuh pelan, kayak daun beneran
-          // Awalnya pelan banget (melayang), tengah agak cepat, akhir melambat (mendarat)
-          const verticalEase = p < 0.15
-            ? p * p * 22  // melayang dulu
-            : p < 0.7
-              ? 0.15 * 22 * 0.15 + (p - 0.15) * 1.1  // mulai jatuh
-              : (() => {
-                  // Mendarat — deselerasi lembut
-                  const localP = (p - 0.7) / 0.3
-                  const landed = 0.15 * 22 * 0.15 + 0.55 * 1.1
-                  return landed + (1 - landed) * (localP * localP * (3 - 2 * localP))
-                })()
-
-          leaf.y = leaf.closingStartY + (targetY - leaf.closingStartY) * Math.min(1, verticalEase)
-
-          // Rotation: masih goyang pelan, semakin lama diam
-          const rotationSway = organicNoise(t * 0.3, leaf.id === 'A' ? 12 : 17) * 8 * (1 - p)
+          // Rotation: goyang pelan yang mereda
+          const rotationSway = organicNoise(t * 0.25, leaf.id === 'A' ? 12 : 17) * 6 * (1 - p)
           const restRotation = leaf.id === 'A' ? 5 : -7
-          const rotationEase = p * p * (3 - 2 * p)
-          leaf.rotation = leaf.closingStartRotation + (restRotation - leaf.closingStartRotation) * rotationEase + rotationSway
+          leaf.rotation = leaf.closingStartRotation + (restRotation - leaf.closingStartRotation) * p + rotationSway
 
-          // Scale: breathing pelan, semakin tenang
-          const scaleBreath = organicNoise(t * 0.2, leaf.id === 'A' ? 14 : 19) * 0.05 * (1 - p)
-          leaf.scale = 0.65 + p * 0.15 + scaleBreath
+          // Scale: tenang aja
+          leaf.scale = 0.65 + p * 0.15
 
-          // Opacity: pelan-pelan lebih jelas saat mendarat
+          // Opacity: pelan-pelan lebih jelas
           leaf.opacity = 0.3 + p * 0.2
 
         } else {
