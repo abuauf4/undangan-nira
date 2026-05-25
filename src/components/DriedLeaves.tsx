@@ -208,9 +208,12 @@ export default function DriedLeaves() {
           const sideOffset = leaf.id === 'A' ? -10 : 10
           const targetX = togetherX + sideOffset
           const closingRect = closingSection?.getBoundingClientRect()
+          // Target: 70% dari closing section — bukan di bawah banget
+          // Pas scroll berhenti, closing top + 70% height = tengah-bawah closing
+          // tapi masih di dalam closing section, bukan di footer
           const targetY = closingRect
-            ? closingRect.bottom - 80
-            : vh * 0.85
+            ? closingRect.top + closingRect.height * 0.7
+            : vh * 0.7
 
           // Horizontal: goyang pelan yang makin kecil
           const swayAmplitude = 15 * (1 - p)
