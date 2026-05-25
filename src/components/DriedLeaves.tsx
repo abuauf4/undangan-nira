@@ -5,28 +5,32 @@ import { prefersReducedMotion } from '@/lib/animations'
 
 /**
  * ═══════════════════════════════════════════════════════════
- *  DRIED LEAVES — Two journeys, one destination
+ *  DRIED LEAVES — CSS 3D Transform
  * ═══════════════════════════════════════════════════════════
  *
- *  Two dried leaves fall through the entire invitation.
- *  Leaf A tends to sway RIGHT — the groom's journey
- *  Leaf B tends to sway LEFT  — the bride's journey
+ *  Two dried leaves carried by wind through the invitation.
+ *  CSS 3D transforms (rotateX/Y/Z) give them depth —
+ *  they tilt sideways, tumble face-down, show edges,
+ *  and drift naturally like real leaves in the air.
  *
- *  They fall slowly — carried by wind, going wherever it takes them.
- *  Kadang ke kanan, kadang ke kiri — angin yang menentukan.
- *  When they fall off the bottom, they reappear at the top.
- *  Like life's journey — always moving, sometimes returning.
+ *  Air-driven movement: not just vertical fall,
+ *  but carried by organic wind gusts.
+ *  Rotation responds to velocity — falling = pitch forward,
+ *  moving sideways = show edge, organic tumble always.
  *
- *  Only at the closing section do they finally descend together —
- *  falling gently to the same place, side by side.
- *  Because now, both are finally together.
+ *  At closing: leaves don't converge magically.
+ *  They fall naturally and settle — stacking on top
+ *  of each other at the bottom of the closing section.
+ *  Leaf A lands first, Leaf B lands on top with offset.
+ *  Like the journey is complete. The leaves have berlabuh.
  *
- *  Visual meaning:
- *  "Dua perjalanan berbeda, terbawa arah angin
- *   yang kadang berlawanan, kadang sejalan,
- *   tapi akhirnya jatuh perlahan di tempat yang sama."
+ *  "Dua daun kering, terbawa angin,
+ *   kadang miring, kadang telungkup,
+ *   tapi akhirnya berlabuh di tempat yang sama."
  * ═══════════════════════════════════════════════════════════
  */
+
+type LeafPhase = 'drifting' | 'closing' | 'landed'
 
 interface Leaf {
   id: 'A' | 'B'
@@ -34,23 +38,29 @@ interface Leaf {
   y: number
   vx: number
   vy: number
-  rotation: number
-  rotationVel: number
+  rotateX: number
+  rotateY: number
+  rotateZ: number
+  rotateXVel: number
+  rotateYVel: number
+  rotateZVel: number
   scale: number
   opacity: number
   element: HTMLDivElement
-  swayDirection: number // A = +1 (right), B = -1 (left)
-  isClosing: boolean
+  swayDirection: number
+  phase: LeafPhase
   closingProgress: number
   closingStartX: number
   closingStartY: number
-  closingStartRotation: number
+  closingStartRotateX: number
+  closingStartRotateY: number
+  closingStartRotateZ: number
   closingStartScale: number
+  landX: number
+  landY: number
+  landRotateZ: number
 }
 
-/**
- * Simple value noise — multiple sine waves at different frequencies
- */
 function organicNoise(t: number, seed: number): number {
   return (
     Math.sin(t * 0.7 + seed) * 0.5 +
@@ -75,6 +85,9 @@ export default function DriedLeaves() {
     el.style.willChange = 'transform, opacity'
     el.style.left = '0'
     el.style.top = '0'
+    el.style.transformStyle = 'preserve-3d'
+    // Leaf B renders on top when stacking
+    el.style.zIndex = id === 'A' ? '1' : '2'
 
     if (id === 'A') {
       el.innerHTML = `
@@ -114,30 +127,35 @@ export default function DriedLeaves() {
     container.appendChild(el)
 
     const vw = window.innerWidth
-    const vh = window.innerHeight
-
-    // Start from top — di luar viewport, baru masuk
     const startX = id === 'A' ? vw * 0.25 : vw * 0.75
-    const startY = id === 'A' ? -60 : -40 // di atas viewport
 
     return {
       id,
       x: startX,
-      y: startY,
+      y: -60,
       vx: 0,
       vy: 0,
-      rotation: id === 'A' ? 12 : -18,
-      rotationVel: id === 'A' ? 0.03 : -0.02,
+      rotateX: id === 'A' ? 15 : -20,   // slight initial pitch
+      rotateY: id === 'A' ? 20 : -15,   // showing some edge
+      rotateZ: id === 'A' ? 12 : -18,
+      rotateXVel: 0,
+      rotateYVel: 0,
+      rotateZVel: 0,
       scale: 0.7,
       opacity: 0,
       element: el,
       swayDirection: id === 'A' ? 1 : -1,
-      isClosing: false,
+      phase: 'drifting',
       closingProgress: 0,
       closingStartX: startX,
-      closingStartY: startY,
-      closingStartRotation: 0,
+      closingStartY: -60,
+      closingStartRotateX: 0,
+      closingStartRotateY: 0,
+      closingStartRotateZ: 0,
       closingStartScale: 1,
+      landX: 0,
+      landY: 0,
+      landRotateZ: 0,
     }
   }, [])
 
@@ -151,24 +169,49 @@ export default function DriedLeaves() {
     const leafB = createLeaf(container, 'B')
     leavesRef.current = [leafA, leafB]
 
-    // Track scroll for proximity + parallax
     const handleScroll = () => {
       const docHeight = document.documentElement.scrollHeight - window.innerHeight
       scrollProgressRef.current = docHeight > 0 ? window.scrollY / docHeight : 0
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
 
-    // Listen for closing start — leaves converge when closing begins
+    // When closing starts: calculate landing positions, switch to closing phase
     const onClosingStart = () => {
       if (closingTriggeredRef.current) return
       closingTriggeredRef.current = true
+
+      const vw = window.innerWidth
+      const closingSection = document.querySelector('[data-section="closing"]')
+      const closingRect = closingSection?.getBoundingClientRect()
+      const scrollParallax = window.scrollY * 0.08
+
+      // Landing zone: 90% of closing section
+      const landBaseY = closingRect
+        ? closingRect.top + closingRect.height * 0.9 - scrollParallax
+        : window.innerHeight * 0.9 - scrollParallax
+
+      const centerX = vw * 0.5
+
       leavesRef.current.forEach(leaf => {
-        leaf.isClosing = true
+        leaf.phase = 'closing'
         leaf.closingProgress = 0
         leaf.closingStartX = leaf.x
         leaf.closingStartY = leaf.y
-        leaf.closingStartRotation = leaf.rotation
+        leaf.closingStartRotateX = leaf.rotateX
+        leaf.closingStartRotateY = leaf.rotateY
+        leaf.closingStartRotateZ = leaf.rotateZ
         leaf.closingStartScale = leaf.scale
+
+        // Stacking: Leaf A lands first, Leaf B on top with offset
+        if (leaf.id === 'A') {
+          leaf.landX = centerX - 12
+          leaf.landY = landBaseY
+          leaf.landRotateZ = 5 + Math.random() * 10
+        } else {
+          leaf.landX = centerX + 6
+          leaf.landY = landBaseY - 4  // slightly higher = on top visually
+          leaf.landRotateZ = -8 + Math.random() * 6
+        }
       })
     }
     window.addEventListener('closing-sequence-start', onClosingStart)
@@ -181,107 +224,107 @@ export default function DriedLeaves() {
 
       const vw = window.innerWidth
       const vh = window.innerHeight
-
-      const closingSection = document.querySelector('[data-section="closing"]')
       const scrollP = scrollProgressRef.current
       const proximity = Math.min(1, Math.max(0, scrollP * 1.3 - 0.1))
       const togetherX = vw * 0.5
-
-      // Scroll-based parallax offset — daun ikut turun pas scroll
-      // Tapi lebih pelan dari scroll, jadi keliatan melayang
       const scrollParallax = window.scrollY * 0.08
 
       leavesRef.current.forEach(leaf => {
         // ─── Fade in at start ───
-        if (!leaf.isClosing && leaf.opacity < 0.35) {
+        if (leaf.phase === 'drifting' && leaf.opacity < 0.35) {
           leaf.opacity = Math.min(0.35, leaf.opacity + 0.002)
         }
 
-        if (leaf.isClosing) {
+        if (leaf.phase === 'landed') {
           // ═══════════════════════════════════════════════════════════
-          //  CLOSING: Turun pelan, menuju titik yang sama
+          //  LANDED: Daun udah numpuk, ga gerak lagi
           // ═══════════════════════════════════════════════════════════
-          leaf.closingProgress = Math.min(1, leaf.closingProgress + 0.0018)
+
+        } else if (leaf.phase === 'closing') {
+          // ═══════════════════════════════════════════════════════════
+          //  CLOSING: Jatuh ke landing zone, rotasi mereda, numpuk
+          //  Leaf A jatuh lebih cepat, Leaf B nyusul dan numpuk di atas
+          // ═══════════════════════════════════════════════════════════
+          const speed = leaf.id === 'A' ? 0.0018 : 0.0014
+          leaf.closingProgress = Math.min(1, leaf.closingProgress + speed)
 
           const p = leaf.closingProgress
+          // Smoothstep easing — natural deceleration
+          const ease = p * p * (3 - 2 * p)
 
-          const sideOffset = leaf.id === 'A' ? -10 : 10
-          const targetX = togetherX + sideOffset
-          const closingRect = closingSection?.getBoundingClientRect()
-          // Target: 70% dari closing section — viewport position
-          // KURANGI scrollParallax karena leaf.y ditambah scrollParallax saat render
-          // Tanpa pengurangan, daun visualnya offset ratusan px ke bawah
-          const targetY = closingRect
-            ? closingRect.top + closingRect.height * 0.9 - scrollParallax
-            : vh * 0.9 - scrollParallax
+          // Position: ease toward landing spot
+          leaf.x = leaf.closingStartX + (leaf.landX - leaf.closingStartX) * ease
+          leaf.y = leaf.closingStartY + (leaf.landY - leaf.closingStartY) * ease
 
-          // Horizontal: goyang pelan yang makin kecil
-          const swayAmplitude = 15 * (1 - p)
-          const swayFreq = leaf.id === 'A' ? 0.3 : 0.35
-          const horizontalSway = organicNoise(t * swayFreq, leaf.id === 'A' ? 10 : 15) * swayAmplitude
+          // Gentle sway during descent — diminishing
+          const swayAmp = 10 * (1 - p)
+          leaf.x += organicNoise(t * 0.3, leaf.id === 'A' ? 10 : 15) * swayAmp
 
-          leaf.x = leaf.closingStartX + (targetX - leaf.closingStartX) * p + horizontalSway
+          // Rotation: flatten out as leaf descends
+          // rotateX → 0 (flat), rotateY → 0 (flat), rotateZ → landing angle
+          leaf.rotateX = leaf.closingStartRotateX * (1 - ease)
+          leaf.rotateY = leaf.closingStartRotateY * (1 - ease)
+          leaf.rotateZ = leaf.closingStartRotateZ + (leaf.landRotateZ - leaf.closingStartRotateZ) * ease
 
-          // Vertical: turun pelan, steady
-          leaf.y = leaf.closingStartY + (targetY - leaf.closingStartY) * p
+          // Small tumble during fall — decreasing
+          leaf.rotateX += organicNoise(t * 0.4, leaf.id === 'A' ? 12 : 17) * 15 * (1 - p)
+          leaf.rotateY += organicNoise(t * 0.3, leaf.id === 'A' ? 13 : 18) * 10 * (1 - p)
 
-          // Rotation: goyang pelan yang mereda
-          const rotationSway = organicNoise(t * 0.25, leaf.id === 'A' ? 12 : 17) * 6 * (1 - p)
-          const restRotation = leaf.id === 'A' ? 5 : -7
-          leaf.rotation = leaf.closingStartRotation + (restRotation - leaf.closingStartRotation) * p + rotationSway
-
-          leaf.scale = 0.65 + p * 0.25
+          // Scale & opacity — growing slightly, becoming more visible
+          leaf.scale = leaf.closingStartScale + p * 0.2
           leaf.opacity = 0.35 + p * 0.45
+
+          // Check if landed
+          if (p >= 1) {
+            leaf.phase = 'landed'
+            leaf.x = leaf.landX
+            leaf.y = leaf.landY
+            leaf.rotateX = 0
+            leaf.rotateY = 0
+            leaf.rotateZ = leaf.landRotateZ
+            leaf.scale = leaf.closingStartScale + 0.2
+            leaf.opacity = 0.8
+          }
 
         } else {
           // ═══════════════════════════════════════════════════════════
-          //  DRIFTING: Daun jatuh pelan, dorong angin dari bawah
-          //  Daun yang sama — bukan daun baru
-          //  Konsep: daun jatuh natural, tapi angin dari bawah
-          //  selalu dorong balik biar ga keluar viewport.
-          //  Spring equilibrium di tengah viewport — daun
-          //  mengambang natural di zona 15%-70%.
-          //  Kadang angin kencang (dorong jauh ke atas),
-          //  kadang lemah (daun jatuh lebih dalam).
+          //  DRIFTING: Air-driven, 3D rotation responds to wind
+          //  Daun jatuh pelan dari atas, terbawa angin
+          //  Rotasi 3D: jatuh = miring ke depan, menyamping = show edge
+          //  Kadang rebahan, kadang telungkup, kadang miring
           // ═══════════════════════════════════════════════════════════
 
-          // ─── Gravity — gentle fall, daun jatuh pelan dari atas ───
+          // ─── Gravity — gentle fall from top ───
           const gravity = 0.003
           leaf.vy += gravity
 
-          // ─── Spring equilibrium — cuma narik ke atas kalo daun kebawah ───
-          // Spring cuma aktif kalo daun udah di bawah 45% viewport
-          // Jadi daun jatuh natural dari atas, baru kena spring pas mau lewat tengah
+          // ─── Spring — only pulls up when below equilibrium ───
           const equilibrium = vh * 0.42
           if (leaf.y > equilibrium) {
             const displacement = leaf.y - equilibrium
-            leaf.vy -= displacement * 0.0004 // lembut, narik balik ke atas
+            leaf.vy -= displacement * 0.0004
           }
 
-          // ─── Organic wind gusts — angin yang kadang kencang kadang lemah ───
+          // ─── Wind gusts ───
           const windCycle = organicNoise(t * 0.08 + (leaf.id === 'A' ? 0 : 3), 20)
           const gustStrength = windCycle > 0.2 ? windCycle * 0.008 : 0
           leaf.vy -= gustStrength
 
-          // ─── Soft boundaries — daun ga keluar viewport ───
-          // Bawah: angin dari bawah dorong balik kalo daun mendekati 70%
+          // ─── Soft boundaries ───
           if (leaf.y > vh * 0.7) {
             const depth = (leaf.y - vh * 0.7) / (vh * 0.3)
             leaf.vy -= depth * 0.02
           }
-          // Atas: JANGAN dorong turun — biar daun jatuh natural dari atas
-          // Cegah keluar viewport aja
           if (leaf.y < -50) {
-            leaf.vy = Math.max(leaf.vy, 0) // stop upward velocity
+            leaf.vy = Math.max(leaf.vy, 0)
           }
 
-          // Organic vertical drift — breathing
+          // Organic vertical drift + damping
           leaf.vy += organicNoise(t * 0.25, leaf.id === 'A' ? 0 : 5) * 0.003
-          // Damping — viscous air
           leaf.vy *= 0.985
           leaf.y += leaf.vy
 
-          // Safety clamp bawah aja — atas biar daun jatuh natural
+          // Safety clamp bottom
           if (leaf.y > vh - 20) {
             leaf.y = vh - 20
             leaf.vy = Math.min(0, leaf.vy)
@@ -296,20 +339,42 @@ export default function DriedLeaves() {
           const sway1 = organicNoise(t * 0.3, leaf.id === 'A' ? 1 : 6) * 25
           const sway2 = organicNoise(t * 0.12, leaf.id === 'A' ? 2 : 7) * 12
           const gust = organicNoise(t * 0.06, 3) * 10 * leaf.swayDirection
-
           const targetX = targetBaseX + sway1 + sway2 + gust
 
           leaf.vx += (targetX - leaf.x) * 0.003
           leaf.vx *= 0.97
           leaf.x += leaf.vx
-
           leaf.x = Math.max(20, Math.min(vw - 40, leaf.x))
 
-          // ─── Rotation ───
-          const moveRotation = leaf.vx * 1.5
-          const breatheRotation = organicNoise(t * 0.4, leaf.id === 'A' ? 4 : 9) * 4
-          leaf.rotationVel += (moveRotation + breatheRotation - leaf.rotationVel) * 0.02
-          leaf.rotation += leaf.rotationVel
+          // ═══════════════════════════════════════════════════════════
+          //  3D ROTATION — driven by air movement
+          // ═══════════════════════════════════════════════════════════
+
+          // rotateX (pitch): falling = tilt forward, rising = tilt back
+          // Real leaves pitch forward when descending, lean back when lifted
+          const velocityPitch = Math.max(-50, Math.min(50, leaf.vy * 200))
+          const tumble = organicNoise(t * 0.2, leaf.id === 'A' ? 11 : 16) * 20
+          const targetRotateX = velocityPitch + tumble
+          leaf.rotateXVel += (targetRotateX - leaf.rotateX) * 0.008
+          leaf.rotateXVel *= 0.96
+          leaf.rotateX += leaf.rotateXVel
+
+          // rotateY (yaw): moving sideways = show edge
+          // Moving right = rotateY negative (showing left edge of leaf)
+          const velocityYaw = Math.max(-45, Math.min(45, -leaf.vx * 150))
+          const edgeDrift = organicNoise(t * 0.15, leaf.id === 'A' ? 12 : 17) * 15
+          const targetRotateY = velocityYaw + edgeDrift
+          leaf.rotateYVel += (targetRotateY - leaf.rotateY) * 0.006
+          leaf.rotateYVel *= 0.96
+          leaf.rotateY += leaf.rotateYVel
+
+          // rotateZ (roll): organic slow spin + wind influence
+          const organicSpin = organicNoise(t * 0.15, leaf.id === 'A' ? 4 : 9) * 25
+          const windRoll = leaf.vx * 50
+          const targetRotateZ = organicSpin + windRoll
+          leaf.rotateZVel += (targetRotateZ - leaf.rotateZ) * 0.005
+          leaf.rotateZVel *= 0.97
+          leaf.rotateZ += leaf.rotateZVel
 
           // ─── Scale ───
           const forwardDrift = organicNoise(t * 0.2, leaf.id === 'A' ? 3 : 8)
@@ -321,17 +386,17 @@ export default function DriedLeaves() {
           leaf.opacity = 0.25 + scaleNorm * 0.1 + proximity * 0.08
         }
 
-        // Apply transform — add scroll parallax to Y position
+        // Apply 3D transform
         const displayY = leaf.y + scrollParallax
-        const transform = `translate3d(${leaf.x}px, ${displayY}px, 0) rotate(${leaf.rotation}deg) scale(${leaf.scale})`
+        const transform = `translate3d(${leaf.x}px, ${displayY}px, 0) rotateX(${leaf.rotateX}deg) rotateY(${leaf.rotateY}deg) rotateZ(${leaf.rotateZ}deg) scale(${leaf.scale})`
         leaf.element.style.transform = transform
         leaf.element.style.opacity = String(leaf.opacity)
       })
 
-      // Check if both leaves have united
+      // Check if both leaves have landed (united)
       if (!leavesUnitedRef.current && closingTriggeredRef.current) {
-        const allArrived = leavesRef.current.every(l => l.isClosing && l.closingProgress >= 1)
-        if (allArrived) {
+        const allLanded = leavesRef.current.every(l => l.phase === 'landed')
+        if (allLanded) {
           leavesUnitedRef.current = true
           window.dispatchEvent(new CustomEvent('leaves-united'))
         }
@@ -355,6 +420,7 @@ export default function DriedLeaves() {
     <div
       ref={containerRef}
       className="fixed inset-0 pointer-events-none z-30 overflow-hidden"
+      style={{ perspective: '1000px' }}
       aria-hidden="true"
     />
   )
