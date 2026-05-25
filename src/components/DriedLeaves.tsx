@@ -9,13 +9,9 @@ import { prefersReducedMotion } from '@/lib/animations'
  * ═══════════════════════════════════════════════════════════
  *
  *  Two dried leaves carried by wind through the invitation.
- *  CSS 3D transforms (rotateX/Y/Z) give them depth —
- *  they tilt sideways, tumble face-down, show edges,
- *  and drift naturally like real leaves in the air.
- *
- *  At closing: both leaves converge to CENTER of the
- *  closing section bottom. Visual-space animation ensures
- *  the leaf NEVER goes past the landing point.
+ *  At closing: both leaves PULL toward center of closing section.
+ *  Exponential pull (not start/end interpolation) = robust
+ *  regardless of starting position.
  *  Hard clamp: daun TIDAK BOLEH melewati titik jatuh.
  *
  *  "Dua daun kering, terbawa angin,
@@ -44,14 +40,10 @@ interface Leaf {
   swayDirection: number
   phase: LeafPhase
   closingProgress: number
-  closingStartX: number
-  closingStartVisualY: number  // visual Y when closing started
   closingStartRotateX: number
   closingStartRotateY: number
   closingStartRotateZ: number
   closingStartScale: number
-  landX: number
-  landVisualY: number          // visual Y of landing point (screen coord)
   landRotateZ: number
 }
 
@@ -71,6 +63,7 @@ export default function DriedLeaves() {
   const closingTriggeredRef = useRef(false)
   const leavesUnitedRef = useRef(false)
   const scrollProgressRef = useRef(0)
+  const closingElRef = useRef<Element | null>(null)
 
   const createLeafElement = (id: 'A' | 'B'): HTMLDivElement => {
     const el = document.createElement('div')
@@ -140,14 +133,10 @@ export default function DriedLeaves() {
       swayDirection: id === 'A' ? 1 : -1,
       phase: 'drifting',
       closingProgress: 0,
-      closingStartX: startX,
-      closingStartVisualY: 0,
       closingStartRotateX: 0,
       closingStartRotateY: 0,
       closingStartRotateZ: 0,
       closingStartScale: 1,
-      landX: 0,
-      landVisualY: 0,
       landRotateZ: 0,
     }
   }, [])
@@ -168,66 +157,28 @@ export default function DriedLeaves() {
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
 
-    // When closing starts: calculate landing in VISUAL SPACE (screen coords)
+    // When closing starts: switch to closing, reset velocity
     const onClosingStart = () => {
       if (closingTriggeredRef.current) return
       closingTriggeredRef.current = true
 
-      const vw = window.innerWidth
-      const scrollParallax = window.scrollY * 0.08
-      const centerX = vw * 0.5
-
-      const closingSection = document.querySelector('[data-section="closing"]')
-      const closingRect = closingSection?.getBoundingClientRect()
+      // Cache closing section element
+      closingElRef.current = document.querySelector('[data-section="closing"]')
 
       leavesRef.current.forEach(leaf => {
-        // Current visual position on screen
-        const currentVisualY = leaf.y + scrollParallax
-
-        // Calculate landing visual Y from closing section position
-        // Both leaves land at 90% of closing section, Leaf B slightly higher (stacking)
-        let landingVisualY: number
-        if (closingRect) {
-          const baseLand = closingRect.top + closingRect.height * 0.9
-          landingVisualY = leaf.id === 'A' ? baseLand : baseLand - 5
-        } else {
-          landingVisualY = leaf.id === 'A'
-            ? window.innerHeight * 0.9
-            : window.innerHeight * 0.9 - 5
-        }
-
-        // If leaf is already at or past landing, snap immediately
-        if (currentVisualY >= landingVisualY) {
-          leaf.phase = 'landed'
-          leaf.x = centerX + (leaf.id === 'A' ? -5 : 5)
-          leaf.y = landingVisualY - window.scrollY * 0.08
-          leaf.rotateX = 0
-          leaf.rotateY = 0
-          leaf.rotateZ = leaf.id === 'A' ? 8 : -5
-          leaf.scale = 0.9
-          leaf.opacity = 0.8
-          return
-        }
-
-        // Normal case: leaf is above landing, will ease down
         leaf.phase = 'closing'
         leaf.closingProgress = 0
-        leaf.closingStartX = leaf.x
-        leaf.closingStartVisualY = currentVisualY
+        // KILL all velocity — daun ga boleh bawa momentum drifting ke closing
+        leaf.vx = 0
+        leaf.vy = 0
         leaf.closingStartRotateX = leaf.rotateX
         leaf.closingStartRotateY = leaf.rotateY
         leaf.closingStartRotateZ = leaf.rotateZ
         leaf.closingStartScale = leaf.scale
 
-        // Both leaves land at CENTER with minimal offset
-        if (leaf.id === 'A') {
-          leaf.landX = centerX - 5
-          leaf.landRotateZ = 5 + Math.random() * 10
-        } else {
-          leaf.landX = centerX + 5
-          leaf.landRotateZ = -8 + Math.random() * 6
-        }
-        leaf.landVisualY = landingVisualY
+        leaf.landRotateZ = leaf.id === 'A'
+          ? 5 + Math.random() * 10
+          : -8 + Math.random() * 6
       })
     }
     window.addEventListener('closing-sequence-start', onClosingStart)
@@ -252,43 +203,70 @@ export default function DriedLeaves() {
         }
 
         if (leaf.phase === 'landed') {
-          // LANDED: Daun udah numpuk, ga gerak lagi
-          // But update y for scroll parallax so leaf stays at landing visually
-          leaf.y = leaf.landVisualY - scrollParallax
+          // ═══════════════════════════════════════════════════════════
+          //  LANDED: Daun udah numpuk, ga gerak lagi
+          //  Track closing section dynamically biar tetap di tempat yang bener
+          // ═══════════════════════════════════════════════════════════
+          const closingEl = closingElRef.current
+          if (closingEl) {
+            const rect = closingEl.getBoundingClientRect()
+            const stackOffset = leaf.id === 'A' ? 0 : -5
+            const targetVisualY = rect.top + rect.height * 0.9 + stackOffset
+            leaf.y = targetVisualY - scrollParallax
+          }
+          // X stays at center
+          const targetX = vw * 0.5 + (leaf.id === 'A' ? -5 : 5)
+          leaf.x = targetX
 
         } else if (leaf.phase === 'closing') {
           // ═══════════════════════════════════════════════════════════
-          //  CLOSING: Visual-space animation
-          //  - Animate visual Y from start to landing, HARD CLAMP
-          //  - Both leaves converge to CENTER
-          //  - Daun TIDAK BOLEH melewati titik jatuh
+          //  CLOSING: Exponential pull toward center of closing section
+          //  - Each frame: pull leaf closer to target
+          //  - Pull strength increases with progress
+          //  - HARD CLAMP: daun TIDAK BOLEH melewati titik jatuh
+          //  - X: converge to center, no sway
+          //  - Y: fall down to closing section bottom, never go past
           // ═══════════════════════════════════════════════════════════
-          const speed = 0.0015
+          const speed = 0.002
           leaf.closingProgress = Math.min(1, leaf.closingProgress + speed)
-
           const p = leaf.closingProgress
-          const ease = p * p * (3 - 2 * p)
 
-          // ─── X: converge toward center ───
-          leaf.x = leaf.closingStartX + (leaf.landX - leaf.closingStartX) * ease
-          // Tiny sway during descent — very controlled
-          const swayAmp = 5 * (1 - p)
-          leaf.x += organicNoise(t * 0.3, leaf.id === 'A' ? 10 : 15) * swayAmp
+          // Target: center of closing section
+          const closingEl = closingElRef.current
+          if (closingEl) {
+            const rect = closingEl.getBoundingClientRect()
+            const stackOffset = leaf.id === 'A' ? 0 : -5
+            const targetVisualY = rect.top + rect.height * 0.9 + stackOffset
+            const targetX = vw * 0.5 + (leaf.id === 'A' ? -5 : 5)
 
-          // ─── Y: visual-space animation ───
-          // Calculate visual Y by easing from start visual to landing visual
-          const visualY = leaf.closingStartVisualY + (leaf.landVisualY - leaf.closingStartVisualY) * ease
-          // HARD CLAMP: visual Y must NEVER exceed landing visual Y
-          const clampedVisualY = Math.min(visualY, leaf.landVisualY)
-          // Convert back to leaf.y coordinate
-          leaf.y = clampedVisualY - scrollParallax
+            // ─── X: exponential pull toward center ───
+            // Pull strength increases with progress: 1% → 8%
+            const xPull = 0.01 + p * 0.07
+            leaf.x += (targetX - leaf.x) * xPull
+            // Hard clamp X: max deviation shrinks with progress
+            const maxDev = 80 * (1 - p)
+            leaf.x = Math.max(targetX - maxDev, Math.min(targetX + maxDev, leaf.x))
+
+            // ─── Y: visual-space pull toward landing ───
+            const currentVisualY = leaf.y + scrollParallax
+            // Only pull DOWN: if leaf is already past landing, stay
+            if (currentVisualY < targetVisualY) {
+              // Pull strength increases with progress: 0.5% → 5%
+              const yPull = 0.005 + p * 0.045
+              const newVisualY = currentVisualY + (targetVisualY - currentVisualY) * yPull
+              // HARD CLAMP: never go past landing
+              const clampedVisualY = Math.min(newVisualY, targetVisualY)
+              leaf.y = clampedVisualY - scrollParallax
+            }
+            // If already at/past landing, don't move Y at all
+          }
 
           // ─── Rotation: flatten out as leaf descends ───
-          leaf.rotateX = leaf.closingStartRotateX * (1 - ease)
-          leaf.rotateY = leaf.closingStartRotateY * (1 - ease)
-          leaf.rotateZ = leaf.closingStartRotateZ + (leaf.landRotateZ - leaf.closingStartRotateZ) * ease
-
-          // Small tumble during fall — decreasing
+          const flattenEase = p * p * (3 - 2 * p)
+          leaf.rotateX = leaf.closingStartRotateX * (1 - flattenEase)
+          leaf.rotateY = leaf.closingStartRotateY * (1 - flattenEase)
+          leaf.rotateZ = leaf.closingStartRotateZ + (leaf.landRotateZ - leaf.closingStartRotateZ) * flattenEase
+          // Small tumble — decreasing
           leaf.rotateX += organicNoise(t * 0.4, leaf.id === 'A' ? 12 : 17) * 15 * (1 - p)
           leaf.rotateY += organicNoise(t * 0.3, leaf.id === 'A' ? 13 : 18) * 10 * (1 - p)
 
@@ -296,11 +274,9 @@ export default function DriedLeaves() {
           leaf.scale = leaf.closingStartScale + p * 0.2
           leaf.opacity = 0.35 + p * 0.45
 
-          // Check if landed
+          // Check if landed: close enough to target OR progress full
           if (p >= 1) {
             leaf.phase = 'landed'
-            leaf.x = leaf.landX
-            leaf.y = leaf.landVisualY - scrollParallax
             leaf.rotateX = 0
             leaf.rotateY = 0
             leaf.rotateZ = leaf.landRotateZ
@@ -349,7 +325,7 @@ export default function DriedLeaves() {
             leaf.vy = Math.min(0, leaf.vy)
           }
 
-          // ─── Horizontal drift — wide wandering, like real wind-carried leaves ───
+          // ─── Horizontal drift — wide wandering ───
           const baseX = leaf.id === 'A' ? vw * 0.25 : vw * 0.75
           const soloX = baseX
           const closeX = togetherX + (leaf.id === 'A' ? -60 : 60)
